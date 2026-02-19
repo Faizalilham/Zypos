@@ -1,33 +1,10 @@
 plugins {
-    alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
+    id("dev.faizal.android.library")
+    id("dev.faizal.android.compose")
 }
 
 android {
     namespace = "dev.faizal.core.designsystem"
-    compileSdk = 36
-
-    defaultConfig {
-        minSdk = 24
-    }
-
-    buildFeatures {
-        compose = true
-    }
-
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.14"
-    }
-
-    kotlinOptions {
-        jvmTarget = "11"
-    }
 }
 
 dependencies {

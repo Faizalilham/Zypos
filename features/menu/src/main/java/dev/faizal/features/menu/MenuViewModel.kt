@@ -26,7 +26,6 @@ class MenuViewModel @Inject constructor(
 ) : ViewModel() {
 
     var state by mutableStateOf(MenuState())
-        private set
 
     private val _allMenus = MutableStateFlow<List<Menu>>(emptyList())
     private val _categories = MutableStateFlow<List<Category>>(emptyList())

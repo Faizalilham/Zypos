@@ -36,7 +36,6 @@ class OrderViewModel @Inject constructor(
 ) : ViewModel() {
 
     var state by mutableStateOf(OrderState())
-        private set
 
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
     val categories: StateFlow<List<Category>> = _categories

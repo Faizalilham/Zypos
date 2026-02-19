@@ -22,7 +22,6 @@ class CategoryViewModel @Inject constructor(
 ) : ViewModel() {
 
     var state by mutableStateOf(CategoryState())
-        private set
 
     private val _categories = MutableStateFlow<List<CategoryWithCount>>(emptyList())
     val categories: StateFlow<List<CategoryWithCount>> = _categories.asStateFlow()
