@@ -18,6 +18,13 @@ itext = "7.2.5"
 # Testing
 uiToolingPreview = "1.10.1"
 uiTooling = "1.10.1"
+coreKtx = "1.17.0"
+junit = "4.13.2"
+junitVersion = "1.3.0"
+espressoCore = "3.7.0"
+appcompat = "1.7.1"
+material = "1.13.0"
+jetbrainsKotlinJvm = "2.0.21"
 
 
 [libraries]
@@ -48,7 +55,6 @@ androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navig
 # 🔽 Coroutines
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 
-# 🔽 Chart
 kotlin-serialization = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 
 # 🔽 PDF
@@ -57,6 +63,12 @@ itext-core = { group = "com.itextpdf", name = "itext7-core", version.ref = "itex
 # --- Testing ---
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "uiToolingPreview" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "uiTooling" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 
 [plugins]
@@ -68,5 +80,7 @@ serialization = { id = "org.jetbrains.kotlin.plugin.serialization",version.ref =
 # 🔽 TAMBAHAN
 ksp = { id = "com.google.devtools.ksp", version = "2.0.21-1.0.25" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 
 

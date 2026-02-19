@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import dev.faizal.ui.navigation.Screen
 import dev.faizal.zypos.ui.screens.MainNavigation
 import dev.faizal.zypos.ui.screens.splash.SplashScreen
 

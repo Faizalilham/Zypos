@@ -26,18 +26,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import dev.faizal.zypos.R
-import dev.faizal.zypos.ui.common.Sidebar
-import dev.faizal.zypos.ui.navigation.MainRoute
-import dev.faizal.zypos.ui.navigation.Screen
-import dev.faizal.zypos.ui.screens.menu.MenuManagementScreen
-import dev.faizal.zypos.ui.screens.order.OrderScreen
-import dev.faizal.zypos.ui.screens.order.OrderViewModel
-import dev.faizal.zypos.ui.screens.overview.ReportScreen
-import dev.faizal.zypos.ui.screens.product.FavoriteProductDetailScreen
-import dev.faizal.zypos.ui.screens.transaction.TransactionAllScreen
-import dev.faizal.zypos.ui.utils.ScreenConfig
-import dev.faizal.zypos.ui.utils.rememberScreenConfig
+import dev.faizal.core.designsystem.R
+import dev.faizal.core.common.utils.ScreenConfig
+import dev.faizal.core.common.utils.rememberScreenConfig
+import dev.faizal.dashboard.ReportScreen
+import dev.faizal.favorite.FavoriteProductDetailScreen
+import dev.faizal.features.menu.MenuManagementScreen
+import dev.faizal.order.OrderScreen
+import dev.faizal.order.OrderViewModel
+import dev.faizal.transaction.TransactionAllScreen
+import dev.faizal.ui.component.Sidebar
+import dev.faizal.ui.navigation.MainRoute
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -164,7 +163,6 @@ fun PhoneLayout(
                     }
                 )
                 is MainRoute.Menu -> MenuManagementScreen(
-                    orderViewModel = orderViewModel,
                     screenConfig = screenConfig,
                     onToggleSidebar = {}
                 )
@@ -254,7 +252,6 @@ fun TabletLayout(
                     }
                 )
                 is MainRoute.Menu -> MenuManagementScreen(
-                    orderViewModel = orderViewModel,
                     screenConfig = screenConfig,
                     onToggleSidebar = onToggleSidebar
                 )

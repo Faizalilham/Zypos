@@ -21,4 +21,13 @@ dependencyResolutionManagement {
 
 rootProject.name = "zypos"
 include(":app")
- 
+include(":core:ui")
+include(":core:data")
+include(":core:domain")
+include(":core:common")
+include(":core:designsystem")
+include(":features:menu")
+include(":features:order")
+include(":features:dashboard")
+include(":features:transaction")
+include(":features:favorite")

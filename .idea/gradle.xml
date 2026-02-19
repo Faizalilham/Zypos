@@ -11,6 +11,18 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/core" />
+            <option value="$PROJECT_DIR$/core/common" />
+            <option value="$PROJECT_DIR$/core/data" />
+            <option value="$PROJECT_DIR$/core/designsystem" />
+            <option value="$PROJECT_DIR$/core/domain" />
+            <option value="$PROJECT_DIR$/core/ui" />
+            <option value="$PROJECT_DIR$/features" />
+            <option value="$PROJECT_DIR$/features/dashboard" />
+            <option value="$PROJECT_DIR$/features/favorite" />
+            <option value="$PROJECT_DIR$/features/menu" />
+            <option value="$PROJECT_DIR$/features/order" />
+            <option value="$PROJECT_DIR$/features/transaction" />
           </set>
         </option>
       </GradleProjectSettings>
