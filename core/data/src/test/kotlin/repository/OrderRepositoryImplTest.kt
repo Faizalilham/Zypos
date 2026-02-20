@@ -167,10 +167,10 @@ class OrderRepositoryImplTest {
 
     @Test
     fun `createOrder calculates correct item prices for different sizes`() = runTest {
-        // Given
-        val smallOrder = testOrder.copy(size = Size.SMALL, totalPrice = 20000.0)
-        val mediumOrder = testOrder.copy(size = Size.MEDIUM, totalPrice = 25000.0)
-        val largeOrder = testOrder.copy(size = Size.LARGE, totalPrice = 32500.0)
+        // Given - totalPrice sudah dihitung benar dari ViewModel
+        val smallOrder = testOrder.copy(size = Size.SMALL, totalPrice = 40000.0, quantity = 2)   // itemPrice = 20000
+        val mediumOrder = testOrder.copy(size = Size.MEDIUM, totalPrice = 50000.0, quantity = 2) // itemPrice = 25000
+        val largeOrder = testOrder.copy(size = Size.LARGE, totalPrice = 65000.0, quantity = 2)   // itemPrice = 32500
 
         val orders = listOf(smallOrder, mediumOrder, largeOrder)
 
@@ -180,18 +180,13 @@ class OrderRepositoryImplTest {
         coEvery { orderDao.insertOrders(capture(capturedEntities)) } returns listOf(1L, 2L, 3L)
 
         // When
-        repository.createOrder(
-            orders = orders,
-            customerName = "Test",
-            orderStatus = OrderStatus.COMPLETED,
-            paymentStatus = PaymentStatus.PAID
-        )
+        repository.createOrder(orders, "Test", OrderStatus.COMPLETED, PaymentStatus.PAID)
 
         // Then
         val entities = capturedEntities.captured
-        assertThat(entities[0].itemPrice).isEqualTo(20000.0) // SMALL: basePrice * 0.8
-        assertThat(entities[1].itemPrice).isEqualTo(25000.0) // MEDIUM: basePrice
-        assertThat(entities[2].itemPrice).isEqualTo(32500.0) // LARGE: basePrice * 1.3
+        assertThat(entities[0].itemPrice).isEqualTo(20000.0) // totalPrice / quantity
+        assertThat(entities[1].itemPrice).isEqualTo(25000.0)
+        assertThat(entities[2].itemPrice).isEqualTo(32500.0)
     }
 
     // ==================== GET ORDER TESTS ====================

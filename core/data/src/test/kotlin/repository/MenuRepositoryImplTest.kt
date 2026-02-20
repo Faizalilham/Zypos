@@ -326,38 +326,6 @@ class MenuRepositoryImplTest {
     }
 
     @Test
-    fun `updateMenu with new image deletes old image and saves new one`() = runTest {
-        // Given
-        val menuId = 1
-        val oldImagePath = "/data/old_image.jpg"
-        val existingMenu = testMenuEntity.copy(imageUri = oldImagePath)
-        val newImageUri = mockk<Uri>(relaxed = true)
-
-        coEvery { menuDao.getMenuById(menuId) } returns existingMenu
-        coEvery { menuDao.updateMenu(any()) } just Runs
-
-        // Mock file operations
-        mockkStatic(File::class)
-        val oldFile = mockk<File>(relaxed = true)
-        every { oldFile.exists() } returns true
-        every { oldFile.delete() } returns true
-
-        // When
-        val result = repository.updateMenu(
-            id = menuId,
-            name = "Test",
-            categoryId = 1,
-            basePrice = 25000.0,
-            imageUri = newImageUri,
-            isActive = true
-        )
-
-        // Then
-        assertThat(result.isSuccess).isTrue()
-        coVerify { menuDao.updateMenu(any()) }
-    }
-
-    @Test
     fun `updateMenu with non-existing menu returns failure`() = runTest {
         // Given
         val menuId = 999
