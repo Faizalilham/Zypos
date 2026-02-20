@@ -40,7 +40,10 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lint-report
-          path: app/build/reports/lint-results-debug.html
+          path: |
+            app/build/reports/lint-results-debug.html
+            core/**/build/reports/lint-results-debug.html
+            features/**/build/reports/lint-results-debug.html
           retention-days: 7
 
   # ==================== UNIT TESTS ====================
