@@ -1,0 +1,278 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
+  workflow_dispatch:
+
+env:
+  JAVA_VERSION: '17'
+  JAVA_DISTRIBUTION: 'temurin'
+
+jobs:
+  # ==================== ANDROID LINT ====================
+  lint:
+    name: Android Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+
+      - name: Grant execute permission
+        run: chmod +x gradlew
+
+      - name: Run Android Lint
+        run: ./gradlew lintDebug
+
+      - name: Upload Lint Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: app/build/reports/lint-results-debug.html
+          retention-days: 7
+
+  # ==================== UNIT TESTS ====================
+  unit-test:
+    name: Unit Tests
+    needs: [lint]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+
+      - name: Grant execute permission
+        run: chmod +x gradlew
+
+      - name: Run Unit Tests
+        run: ./gradlew test
+
+      - name: Upload Unit Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-report
+          path: app/build/reports/tests/testDebugUnitTest/
+          retention-days: 7
+
+  # ==================== INSTRUMENTATION TESTS ====================
+  instrumentation-test:
+    name: Instrumentation Tests
+    needs: [unit-test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+
+      - name: Grant execute permission
+        run: chmod +x gradlew
+
+      - name: Build APKs
+        run: ./gradlew assembleDebug assembleDebugAndroidTest
+
+      # Option 1: Using emulator.wtf (recommended - faster)
+      - name: Run Tests on emulator.wtf
+        if: ${{ secrets.WTF_EMULATOR != '' }}
+        uses: emulator-wtf/run-tests@v0
+        with:
+          api-token: ${{ secrets.WTF_EMULATOR }}
+          app: app/build/outputs/apk/debug/app-debug.apk
+          test: app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+          outputs-dir: build/test-results
+
+      # Option 2: Using local emulator (fallback)
+      - name: Run Tests on Local Emulator
+        if: ${{ secrets.WTF_EMULATOR == '' }}
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 29
+          arch: x86_64
+          profile: Nexus 6
+          script: ./gradlew connectedDebugAndroidTest
+
+      - name: Upload Instrumentation Test Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: instrumentation-test-report
+          path: |
+            app/build/reports/androidTests/connected/
+            build/test-results/
+          retention-days: 7
+
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: '**/build/test-results/**/*.xml'
+          check_name: Instrumentation Test Results
+
+  # ==================== SONARQUBE ANALYSIS ====================
+  sonarqube:
+    name: SonarQube Analysis
+    needs: [unit-test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Shallow clones disabled for SonarQube
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+
+      - name: Grant execute permission
+        run: chmod +x gradlew
+
+      - name: Cache SonarQube packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      # Run tests for coverage
+      - name: Run Tests for Coverage
+        run: ./gradlew test jacocoTestReport
+
+      # SonarQube Scan
+      - name: SonarQube Scan
+        run: ./gradlew sonarqube -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # ==================== BUILD APK ====================
+  build:
+    name: Build APK
+    needs: [ unit-test, instrumentation-test ]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      matrix:
+        flavor: [ Development, Staging, Production ]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+
+      - name: Grant execute permission
+        run: chmod +x gradlew
+
+      - name: Build ${{ matrix.flavor }} Release APK
+        run: ./gradlew assemble${{ matrix.flavor }}Release --stacktrace
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: zypos-${{ matrix.flavor }}-release.apk
+          path: app/build/outputs/apk/${{ matrix.flavor,, }}/release/*.apk
+          retention-days: 14
+
+  # ==================== DEPLOY TO PLAY STORE ====================
+  deploy:
+    name: Deploy to Play Store
+    needs: [build, sonarqube]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: gradle
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Grant execute permission
+        run: chmod +x gradlew
+
+      # Create Service Account Key file
+      - name: Create Service Account Key
+        uses: timheuer/base64-to-file@v1
+        id: service_account_json
+        with:
+          fileName: "service-account.json"
+          encodedString: ${{ secrets.GPLAY_SERVICE_ACCOUNT_KEY }}
+
+      # Create Keystore file
+      - name: Create Keystore
+        uses: timheuer/base64-to-file@v1
+        id: keystore
+        with:
+          fileName: "release.keystore"
+          encodedString: ${{ secrets.KEYSTORE_FILE }}
+
+      # Deploy with Fastlane
+      - name: Deploy to Play Store
+        run: bundle exec fastlane android deploy
+        env:
+          PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
+          KEYSTORE_FILE: ${{ steps.keystore.outputs.filePath }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          GPLAY_SERVICE_ACCOUNT_KEY: ${{ steps.service_account_json.outputs.filePath }}
+
+      - name: Upload Release Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: |
+            app/build/outputs/apk/release/
+            app/build/outputs/bundle/release/
+          retention-days: 30
