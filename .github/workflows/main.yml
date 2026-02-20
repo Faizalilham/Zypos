@@ -77,31 +77,26 @@ jobs:
 
   # ==================== INSTRUMENTATION TESTS ====================
   instrumentation-test:
-    name: Instrumentation Tests
-    needs: [unit-test]
+    needs: [ unit-test ]
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Checkout the code
+        uses: actions/checkout@v2
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
         with:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           java-version: ${{ env.JAVA_VERSION }}
           cache: gradle
 
-      - name: Grant execute permission
+      - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build APKs
-        run: ./gradlew assembleDebug assembleDebugAndroidTest
+      - name: Build app
+        run: ./gradlew assembleDebug assembleAndroidTest
 
-      # Option 1: Using emulator.wtf (recommended - faster)
-      - name: Run Tests on emulator.wtf
-        if: ${{ secrets.WTF_EMULATOR != '' }}
+      - name: Run tests
         uses: emulator-wtf/run-tests@v0
         with:
           api-token: ${{ secrets.WTF_EMULATOR }}
@@ -109,32 +104,11 @@ jobs:
           test: app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
           outputs-dir: build/test-results
 
-      # Option 2: Using local emulator (fallback)
-      - name: Run Tests on Local Emulator
-        if: ${{ secrets.WTF_EMULATOR == '' }}
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 29
-          arch: x86_64
-          profile: Nexus 6
-          script: ./gradlew connectedDebugAndroidTest
-
-      - name: Upload Instrumentation Test Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: instrumentation-test-report
-          path: |
-            app/build/reports/androidTests/connected/
-            build/test-results/
-          retention-days: 7
-
-      - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v4
+      - name: Publish test report
+        uses: mikepenz/action-junit-report@v2
         if: always()
         with:
-          report_paths: '**/build/test-results/**/*.xml'
-          check_name: Instrumentation Test Results
+          report_paths: 'build/test-results/**/*.xml'
 
   # ==================== SONARQUBE ANALYSIS ====================
   sonarqube:
