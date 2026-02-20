@@ -160,7 +160,7 @@ jobs:
 
     strategy:
       matrix:
-        flavor: [ Development, Staging, Production ]
+        flavor: [ development, staging, production ]
 
     steps:
       - name: Checkout code
@@ -176,14 +176,17 @@ jobs:
       - name: Grant execute permission
         run: chmod +x gradlew
 
-      - name: Build ${{ matrix.flavor }} Release APK
-        run: ./gradlew assemble${{ matrix.flavor }}Release --stacktrace
+      - name: Prepare flavor name
+        run: echo "FLAVOR_CAP=$(echo ${{ matrix.flavor }} | sed 's/.*/\u&/')" >> $GITHUB_ENV
+
+      - name: Build Release APK
+        run: ./gradlew assemble${{ env.FLAVOR_CAP }}Release --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: zypos-${{ matrix.flavor }}-release.apk
-          path: app/build/outputs/apk/${{ matrix.flavor,, }}/release/*.apk
+          path: app/build/outputs/apk/${{ matrix.flavor }}/release/*.apk
           retention-days: 14
 
   # ==================== DEPLOY TO PLAY STORE ====================
