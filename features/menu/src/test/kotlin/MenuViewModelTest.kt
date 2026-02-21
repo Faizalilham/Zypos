@@ -236,15 +236,20 @@ class MenuViewModelTest {
         every { menuRepository.getAllMenus() } returns flowOf(menus)
 
         val newViewModel = MenuViewModel(menuRepository, categoryRepository)
-        advanceUntilIdle()
+        testScheduler.advanceUntilIdle()
 
-        // When
-        newViewModel.onSearchQueryChange("Latte")
-        advanceUntilIdle()
-
-        // Then
+        // Then - collect dulu sebelum trigger
         newViewModel.filteredMenus.test {
+            // Skip initial emission (semua menu)
+            skipItems(1)
+
+            // When - baru trigger search
+            newViewModel.onSearchQueryChange("Latte")
+            testScheduler.advanceUntilIdle()
+
+            // Ambil emisi setelah filter
             val filtered = awaitItem()
+
             assertThat(filtered).hasSize(1)
             assertThat(filtered.first().name).isEqualTo("Latte")
         }

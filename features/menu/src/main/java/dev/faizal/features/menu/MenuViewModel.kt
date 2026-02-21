@@ -30,6 +30,9 @@ class MenuViewModel @Inject constructor(
     private val _allMenus = MutableStateFlow<List<Menu>>(emptyList())
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
 
+    private val _searchQuery = MutableStateFlow("")                    // tambah ini
+    private val _selectedFilterCategoryId = MutableStateFlow<Int?>(null) // tambah ini
+
     private val _filteredMenus = MutableStateFlow<List<Menu>>(emptyList())
     val filteredMenus: StateFlow<List<Menu>> = _filteredMenus.asStateFlow()
 
@@ -81,10 +84,12 @@ class MenuViewModel @Inject constructor(
 
     fun onSearchQueryChange(query: String) {
         state = state.copy(searchQuery = query)
+        _searchQuery.value = query  // tambahkan ini
     }
 
     fun onCategoryFilterChange(categoryId: Int?) {
         state = state.copy(selectedFilterCategoryId = categoryId)
+        _selectedFilterCategoryId.value = categoryId  // tambahkan ini
     }
 
     fun toggleCreateDialog(show: Boolean) {
@@ -214,12 +219,13 @@ class MenuViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 _allMenus,
-                _filteredMenus
-            ) { menus, _ ->
+                _searchQuery,
+                _selectedFilterCategoryId
+            ) { menus, query, categoryId ->
                 filterMenus(
                     menus = menus,
-                    categoryId = state.selectedFilterCategoryId,
-                    searchQuery = state.searchQuery
+                    categoryId = categoryId,
+                    searchQuery = query
                 )
             }.collect { filtered ->
                 _filteredMenus.value = filtered

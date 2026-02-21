@@ -753,20 +753,19 @@ class CategoryViewModelTest {
         coEvery {
             categoryRepository.insertCategory(any(), any(), any())
         } coAnswers {
-            // Simulate slow operation
             kotlinx.coroutines.delay(100)
             Result.success(1L)
         }
 
-        // When
         viewModel.createCategory()
 
-        // Then - Check loading state before completion
+        advanceTimeBy(50)
+
         assertThat(viewModel.state.isLoading).isTrue()
 
         advanceUntilIdle()
 
-        // Then - Loading should be false after completion
+        // Then - loading sudah selesai
         assertThat(viewModel.state.isLoading).isFalse()
     }
 
@@ -774,7 +773,6 @@ class CategoryViewModelTest {
 
     @Test
     fun `createCategory with emoji in name succeeds`() = runTest {
-        // Given
         viewModel.state = viewModel.state.copy(
             name = "Coffee ☕",
             emoji = "☕",
@@ -785,7 +783,6 @@ class CategoryViewModelTest {
             categoryRepository.insertCategory(any(), any(), any())
         } returns Result.success(1L)
 
-        // When
         viewModel.createCategory()
         advanceUntilIdle()
 
