@@ -97,7 +97,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build app
-        run: ./gradlew assembleDebug assembleAndroidTest
+        run: ./gradlew :app:assembleDebug :app:assembleAndroidTest
 
       - name: Run tests
         uses: emulator-wtf/run-tests@v0

@@ -38,8 +38,8 @@ import dev.faizal.core.domain.model.menu.Menu
 fun MenuItemCard(
     item: Menu,
     isSelected: Boolean,
+    modifier: Modifier = Modifier,
     onAddToCart: () -> Unit = {},
-    modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier,

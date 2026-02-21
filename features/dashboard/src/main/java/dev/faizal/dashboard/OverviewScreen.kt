@@ -144,14 +144,14 @@ fun ReportScreen(
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             StatCard(
                                 title = "Total Laba",
-                                value = "Rp ${String.format("%,.0f", netProfit)}",
+                                value = netProfit.toCurrencyString(),
                                 unit = "",
                                 backgroundColor = if (isDarkMode) CardGreenDark else CardGreenLight,
                                 image = R.drawable.best,
                             )
                             StatCard(
                                 title = "Total Pendapatan",
-                                value = "Rp ${String.format("%,.0f", totalSales)}", // Contoh
+                                value = totalSales.toCurrencyString(), // Contoh
                                 unit = "",
                                 backgroundColor = if (isDarkMode) CardBlueDark else CardBlueLight,
                                 image = R.drawable.trend_up,
@@ -172,7 +172,7 @@ fun ReportScreen(
                         ) {
                             StatCard(
                                 title = "Total Laba",
-                                value = "Rp ${String.format("%,.0f", netProfit)}",
+                                value = netProfit.toCurrencyString(),
                                 unit = "",
                                 backgroundColor = if (isDarkMode) CardGreenDark else CardGreenLight,
                                 image = R.drawable.best,
@@ -180,7 +180,7 @@ fun ReportScreen(
                             )
                             StatCard(
                                 title = "Total Pendapatan",
-                                value = "Rp ${String.format("%,.0f", totalSales)}",
+                                value = totalSales.toCurrencyString(),
                                 unit = "",
                                 backgroundColor = if (isDarkMode) CardBlueDark else CardBlueLight,
                                 image = R.drawable.trend_up,
@@ -203,7 +203,7 @@ fun ReportScreen(
                         ) {
                             StatCard(
                                 title = "Total Laba",
-                                value = "Rp ${String.format("%,.0f", netProfit)}",
+                                value = netProfit.toCurrencyString(),
                                 unit = "",
                                 backgroundColor = if (isDarkMode) CardGreenDark else CardGreenLight,
                                 image = R.drawable.best,
@@ -211,7 +211,7 @@ fun ReportScreen(
                             )
                             StatCard(
                                 title = "Total Pendapatan",
-                                value = "Rp ${String.format("%,.0f", totalSales)}",
+                                value = totalSales.toCurrencyString(),
                                 unit = "",
                                 backgroundColor = if (isDarkMode) CardBlueDark else CardBlueLight,
                                 image = R.drawable.trend_up,

@@ -5,6 +5,11 @@ plugins {
 
 android {
     namespace = "dev.faizal.core.designsystem"
+    lint {
+        disable += setOf(
+            "VectorPath"
+        )
+    }
 }
 
 dependencies {

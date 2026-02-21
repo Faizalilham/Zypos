@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -30,8 +31,8 @@ class MenuViewModel @Inject constructor(
     private val _allMenus = MutableStateFlow<List<Menu>>(emptyList())
     private val _categories = MutableStateFlow<List<Category>>(emptyList())
 
-    private val _searchQuery = MutableStateFlow("")                    // tambah ini
-    private val _selectedFilterCategoryId = MutableStateFlow<Int?>(null) // tambah ini
+    private val _searchQuery = MutableStateFlow("")
+    private val _selectedFilterCategoryId = MutableStateFlow<Int?>(null)
 
     private val _filteredMenus = MutableStateFlow<List<Menu>>(emptyList())
     val filteredMenus: StateFlow<List<Menu>> = _filteredMenus.asStateFlow()
@@ -109,7 +110,7 @@ class MenuViewModel @Inject constructor(
                 selectedCategoryId = menu.categoryId,
                 price = menu.basePrice.toString(),
                 isActive = menu.isActive,
-                selectedImageUri = menu.imageUri?.let { Uri.parse(it) }
+                selectedImageUri = menu.imageUri?.toUri()
             )
         } else {
             resetFormState()

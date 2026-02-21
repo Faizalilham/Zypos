@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import dev.faizal.core.common.utils.toCurrencyString
 import dev.faizal.core.designsystem.AccentGreen
 import dev.faizal.core.designsystem.R
 import dev.faizal.core.domain.model.order.OrderDetail
@@ -176,7 +177,7 @@ fun EnhancedOrderMenuItem(order: OrderDetail) {
                 // Price
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = "Rp ${String.format("%,.0f", order.totalPrice)}",
+                        text = order.totalPrice.toCurrencyString(),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = AccentGreen
