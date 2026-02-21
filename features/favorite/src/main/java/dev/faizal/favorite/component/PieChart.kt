@@ -24,6 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.faizal.core.common.utils.getBarColor
+import dev.faizal.core.common.utils.toRupiahFormatDecimal
 import dev.faizal.core.domain.model.report.TopProductReport
 import dev.faizal.ui.component.PieChartLegend
 import dev.faizal.ui.component.SimplePieChart
@@ -163,7 +164,7 @@ fun HorizontalBarItem(
                 text = if (type == "orders") {
                     "${value.toInt()} orders"
                 } else {
-                    "Rp ${String.format("%,.0f", value)}"
+                    value.toRupiahFormatDecimal()
                 },
                 fontSize = 12.sp,
                 fontWeight = FontWeight.SemiBold,

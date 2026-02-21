@@ -34,6 +34,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -122,9 +123,9 @@ fun MonthYearPickerDialog(
     val years = (2020..currentYear).toList()
 
     var selectedMonth by remember {
-        mutableStateOf(months.indexOf(initialMonth).takeIf { it >= 0 } ?: currentMonth)
+        mutableIntStateOf(months.indexOf(initialMonth).takeIf { it >= 0 } ?: currentMonth)
     }
-    var selectedYear by remember { mutableStateOf(initialYear) }
+    var selectedYear by remember { mutableIntStateOf(initialYear) }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(

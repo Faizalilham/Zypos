@@ -26,6 +26,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.faizal.core.common.utils.toRupiahFormatDecimal
 import dev.faizal.core.designsystem.AccentGreen
 import dev.faizal.core.designsystem.R
 import dev.faizal.core.domain.model.report.TopProductReport
@@ -97,13 +98,13 @@ fun ProductDetailBottomSheet(
                 )
                 DetailStatItem(
                     label = "Total Revenue",
-                    value = "Rp ${String.format("%,.0f", product.totalAmount)}",
+                    value = product.totalAmount.toRupiahFormatDecimal(),
                     image = R.drawable.ic_transaction,
                     color = AccentGreen
                 )
                 DetailStatItem(
                     label = "Avg per Order",
-                    value = "Rp ${String.format("%,.0f", product.totalAmount / product.orderCount)}",
+                    value = (product.totalAmount / product.orderCount).toRupiahFormatDecimal(),
                     image = R.drawable.trend_up,
                     color = Color(0xFFFFC107)
                 )

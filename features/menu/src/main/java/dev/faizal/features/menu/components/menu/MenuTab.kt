@@ -26,6 +26,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -53,7 +54,7 @@ fun MenuTab(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var menuToDelete by remember { mutableStateOf<Menu?>(null) }
 
-    var currentPage by remember { mutableStateOf(1) }
+    var currentPage by remember { mutableIntStateOf(1) }
     val itemsPerPage = 10
 
     val totalPages = (menus.size + itemsPerPage - 1) / itemsPerPage

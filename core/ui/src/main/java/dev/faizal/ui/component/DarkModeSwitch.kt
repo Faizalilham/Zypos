@@ -32,12 +32,15 @@ import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.lerp
 import dev.faizal.core.designsystem.R
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 
 val BlueSky= Color(0xFF4478a9)
@@ -118,11 +121,21 @@ fun DarkModeSwitch(checked: Boolean, modifier: Modifier = Modifier, onCheckedCha
                     }
             )
 
+            val density = LocalDensity.current
+            val switchWidthPx = with(density) { switchWidth.toPx() }
+            val handleSizePx = with(density) { handleSize.toPx() }
+            val handlePaddingPx = with(density) { handlePadding.toPx() }
             Box(
                 modifier = Modifier
                     .padding(horizontal = handlePadding)
                     .size(handleSize)
-                    .offset(x = (switchWidth - handleSize - handlePadding * 2f) * offset.value)
+                    .offset {
+                        IntOffset(
+                            x = ((switchWidthPx - handleSizePx - handlePaddingPx * 2f) * offset.value).roundToInt(),
+                            y = 0
+                        )
+                    }
+
                     .paint(painterResource(R.drawable.sun))
                     .clip(CircleShape)
             ) {

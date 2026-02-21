@@ -13,6 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.faizal.core.common.utils.toDecimalString
 import dev.faizal.core.designsystem.AccentGreen
 import dev.faizal.core.domain.model.report.DailySalesReport
 
@@ -51,7 +52,7 @@ fun DailySalesRow(sale: DailySalesReport) {
             color = MaterialTheme.colorScheme.onSurface
         )
         Text(
-            "Rp ${String.format("%,.2f", sale.totalAmount)}",
+            "Rp ${sale.totalAmount.toDecimalString()}",
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier

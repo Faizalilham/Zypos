@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.faizal.core.common.utils.toCurrencyString
 
 @Composable
 fun TooltipPopup(
@@ -39,7 +40,7 @@ fun TooltipPopup(
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "Rp ${String.format("%,.2f", value)}",
+                text = value.toDouble().toCurrencyString(),
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White

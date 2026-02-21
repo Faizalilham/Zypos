@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import dev.faizal.core.common.utils.toDecimalString
 import dev.faizal.core.designsystem.R
 import dev.faizal.ui.component.WaveChart
 import kotlin.math.abs
@@ -73,7 +74,7 @@ fun GraphCard(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(220.dp),
+                        .height(300.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -110,11 +111,9 @@ fun GraphCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                InfoBox("Amount", String.format("%,.2f", totalAmount), "Rp", Modifier.weight(1f))
-                InfoBox("Growth", "${if (growthAmount >= 0) "+" else ""} ${String.format("%,.2f", growthAmount)}", "Rp", Modifier.weight(1f))
-                InfoBox("Growth Percentage", "${if (growthPercentage >= 0) "↑" else "↓"} ${String.format("%.1f",
-                    abs(growthPercentage)
-                )}", "Percent (%)", Modifier.weight(1f))
+                InfoBox("Amount", totalAmount.toDecimalString(), "Rp", Modifier.weight(1f))
+                InfoBox("Growth", "${if (growthAmount >= 0) "+" else ""} ${growthAmount.toDecimalString()}", "Rp", Modifier.weight(1f))
+                InfoBox("Growth Percentage", "${if (growthPercentage >= 0) "↑" else "↓"} ${abs(growthPercentage).toDecimalString()}", "Percent (%)", Modifier.weight(1f))
             }
         }
     }

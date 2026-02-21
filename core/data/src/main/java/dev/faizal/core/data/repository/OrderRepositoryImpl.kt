@@ -222,10 +222,10 @@ class OrderRepositoryImpl @Inject constructor(
         val lastNumber = orderDao.getLastOrderNumberToday() ?: 0
         val newNumber = lastNumber + 1
 
-        return "ORD-$dateStr-${String.format("%03d", newNumber)}"
+        return "ORD-$dateStr-${String.format(Locale.ROOT, "%03d", newNumber)}"
     }
 
     private fun formatYearMonth(year: Int, month: Int): String {
-        return String.format("%04d-%02d", year, month)
+        return String.format(Locale.ROOT, "%04d-%02d", year, month)
     }
 }

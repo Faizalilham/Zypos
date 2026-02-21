@@ -36,6 +36,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import dev.faizal.core.common.utils.getCategoryColor
+import dev.faizal.core.common.utils.toCurrencyString
 import dev.faizal.core.domain.model.menu.Menu
 
 @Composable
@@ -142,7 +143,7 @@ fun MenuTableRow(
 
             // Price
             Text(
-                text = "Rp ${String.format("%,d", item.basePrice.toInt()).replace(",", ".")}",
+                text = item.basePrice.toCurrencyString(),
                 fontSize = if (isLandscape) 13.sp else 14.sp,
                 color = MaterialTheme.colorScheme.onSurface, 
                 fontWeight = FontWeight.Medium,

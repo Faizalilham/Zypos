@@ -13,6 +13,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import dev.faizal.core.common.utils.toRupiahFormatDecimal
 import dev.faizal.core.domain.model.report.TopProductReport
 
 @Composable
@@ -39,7 +40,7 @@ fun ProductSummaryStats(
                 )
                 ProductStatItem(
                     "Total Revenue",
-                    "Rp ${String.format("%,.0f", products.sumOf { it.totalAmount })}"
+                    products.sumOf { it.totalAmount }.toRupiahFormatDecimal()
                 )
                 ProductStatItem(
                     "Average Orders",
@@ -62,7 +63,7 @@ fun ProductSummaryStats(
                 VerticalDivider(modifier = Modifier.height(40.dp))
                 ProductStatItem(
                     "Total Revenue",
-                    "Rp ${String.format("%,.0f", products.sumOf { it.totalAmount })}"
+                    products.sumOf { it.totalAmount }.toRupiahFormatDecimal()
                 )
                 VerticalDivider(modifier = Modifier.height(40.dp))
                 ProductStatItem(

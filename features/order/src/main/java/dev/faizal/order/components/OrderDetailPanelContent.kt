@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import dev.faizal.core.common.utils.toDecimalString
 import dev.faizal.core.domain.model.order.Order
 
 @Composable
@@ -165,7 +166,7 @@ fun OrderDetailsPanelContent(
                     color = MaterialTheme.colorScheme.onSurfaceVariant 
                 )
                 Text(
-                    "$ ${String.format("%.2f", subtotal)}",
+                    "Rp ${subtotal.toDecimalString()}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface 
                 )
@@ -183,7 +184,7 @@ fun OrderDetailsPanelContent(
                     color = MaterialTheme.colorScheme.onSurfaceVariant 
                 )
                 Text(
-                    "$ ${String.format("%.2f", tax)}",
+                    "Rp ${tax.toDecimalString()}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface 
                 )
@@ -204,7 +205,7 @@ fun OrderDetailsPanelContent(
                     color = MaterialTheme.colorScheme.onSurface 
                 )
                 Text(
-                    "$ ${String.format("%.2f", total)}",
+                    "Rp ${total.toDecimalString()}",
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     color = MaterialTheme.colorScheme.onSurface 
                 )

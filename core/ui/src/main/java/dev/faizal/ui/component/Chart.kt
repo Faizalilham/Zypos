@@ -51,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.faizal.core.common.utils.toPercentageString
 import dev.faizal.core.designsystem.R
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -109,7 +110,7 @@ fun SimplePieChart(
                     val textX = centerX + (textRadius * cos(angleInRadians)).toFloat()
                     val textY = centerY + (textRadius * sin(angleInRadians)).toFloat()
 
-                    val percentageText = "${String.format("%.0f", percentage * 100)}%"
+                    val percentageText = percentage.toPercentageString(decimals = 0)
 
                     drawContext.canvas.nativeCanvas.apply {
                         val paint = Paint().apply {
@@ -185,7 +186,7 @@ fun PieChartLegend(
                 )
 
                 Text(
-                    text = "${String.format("%.1f", (count.toFloat() / total) * 100)}%",
+                    text = (count.toFloat() / total).toPercentageString(decimals = 1),
                     fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium

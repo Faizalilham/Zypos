@@ -3,8 +3,10 @@ package dev.faizal.core.common.utils
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.ui.graphics.Color
+import java.text.NumberFormat
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.util.Locale
 
 fun getCategoryColor(categoryName: String): Color {
     return when (categoryName.lowercase()) {

@@ -13,6 +13,7 @@ import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import dev.faizal.core.common.utils.toCurrencyString
 
 @Composable
 fun TransactionSummaryCard(
@@ -34,7 +35,7 @@ fun TransactionSummaryCard(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 SummaryItem("Total Days", totalTransactions.toString())
-                SummaryItem("Total Revenue", "Rp ${String.format("%,.2f", totalAmount)}")
+                SummaryItem("Total Revenue", totalAmount.toCurrencyString())
                 SummaryItem("Total Orders", totalOrders.toString())
             }
         } else {
@@ -46,7 +47,7 @@ fun TransactionSummaryCard(
             ) {
                 SummaryItem("Total Days", totalTransactions.toString())
                 VerticalDivider(modifier = Modifier.height(40.dp))
-                SummaryItem("Total Revenue", "Rp ${String.format("%,.2f", totalAmount)}")
+                SummaryItem("Total Revenue", totalAmount.toCurrencyString())
                 VerticalDivider(modifier = Modifier.height(40.dp))
                 SummaryItem("Total Orders", totalOrders.toString())
             }

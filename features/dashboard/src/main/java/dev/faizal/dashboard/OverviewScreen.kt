@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -56,8 +57,8 @@ fun ReportScreen(
     val reportState = reportViewModel.state
     val report = reportState.report
 
-    var selectedMonth by remember { mutableStateOf(reportState.month) }
-    var selectedYear by remember { mutableStateOf(reportState.year) }
+    var selectedMonth by remember { mutableIntStateOf(reportState.month) }
+    var selectedYear by remember { mutableIntStateOf(reportState.year) }
 
     LaunchedEffect(selectedMonth, selectedYear) {
         reportViewModel.updateMonthYear(selectedMonth, selectedYear)

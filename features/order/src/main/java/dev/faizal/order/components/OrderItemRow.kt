@@ -18,6 +18,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.faizal.core.common.utils.toDecimalString
 import dev.faizal.core.domain.model.order.Order
 import dev.faizal.core.domain.model.order.Size
 import dev.faizal.core.domain.model.order.Temperature
@@ -29,7 +30,7 @@ fun OrderItemRow(
     orderItem: Order,
     onQuantityChange: (Int) -> Unit,
     onRemove: () -> Unit,
-    onEdit: (Order) -> Unit // TAMBAHKAN INI
+    onEdit: (Order) -> Unit
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
 
@@ -198,7 +199,7 @@ fun OrderItemRow(
 
             // Price
             Text(
-                "$${String.format("%.2f", orderItem.totalPrice)}",
+                "Rp${orderItem.totalPrice.toDecimalString()}",
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
                 color = MaterialTheme.colorScheme.onSurface
             )

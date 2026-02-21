@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.faizal.core.common.utils.formatDateToIndonesian
+import dev.faizal.core.common.utils.toCurrencyString
 import dev.faizal.core.designsystem.AccentGreen
 import dev.faizal.core.domain.model.report.DailySalesReport
 
@@ -82,7 +83,7 @@ fun TransactionCard(
                 }
 
                 Text(
-                    text = "Rp ${String.format("%,.2f", transaction.totalAmount)}",
+                    text = transaction.totalAmount.toCurrencyString(),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = AccentGreen

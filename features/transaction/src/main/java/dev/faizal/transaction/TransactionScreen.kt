@@ -55,6 +55,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import dev.faizal.core.common.utils.ScreenConfig
 import dev.faizal.core.common.utils.formatDateToIndonesian
 import dev.faizal.core.common.utils.getMonthName
+import dev.faizal.core.common.utils.toCurrencyString
 import dev.faizal.core.designsystem.R
 import dev.faizal.transaction.component.EnhancedOrderMenuItem
 import dev.faizal.transaction.component.StatItem
@@ -452,8 +453,7 @@ fun TransactionAllScreen(
                                 )
                                 StatItem(
                                     label = "Total",
-                                    value = "Rp ${String.format("%,.0f",
-                                        state.selectedDateOrders.sumOf { it.totalPrice })}",
+                                    value = state.selectedDateOrders.sumOf { it.totalPrice }.toCurrencyString(),
                                     icon = Icons.Default.Menu
                                 )
                             }

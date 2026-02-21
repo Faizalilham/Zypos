@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import dev.faizal.core.common.utils.toDecimalString
 import dev.faizal.core.domain.model.menu.Menu
 import dev.faizal.core.domain.model.order.Size
 import dev.faizal.core.domain.model.order.Temperature
@@ -38,9 +39,9 @@ import dev.faizal.core.designsystem.R
 @Composable
 fun AddOrderDialog(
     menu: Menu,
-    initialQuantity: Int = 1, // TAMBAHKAN untuk edit mode
-    initialSize: Size = Size.MEDIUM, // TAMBAHKAN untuk edit mode
-    initialTemperature: Temperature = Temperature.HOT, // TAMBAHKAN untuk edit mode
+    initialQuantity: Int = 1,
+    initialSize: Size = Size.MEDIUM,
+    initialTemperature: Temperature = Temperature.HOT,
     onDismiss: () -> Unit,
     onConfirm: (quantity: Int, size: Size, temperature: Temperature) -> Unit
 ) {
@@ -188,7 +189,7 @@ private fun AddOrderDialogContent(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                "$${String.format("%.2f", menu.basePrice)}",
+                                "Rp${menu.basePrice.toDecimalString()}",
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color(0xFF2196F3)
@@ -357,7 +358,7 @@ private fun AddOrderDialogContent(
                     )
                 ) {
                     Text(
-                        "(\$${String.format("%.2f", totalPrice)}) Add to Order",
+                        "(Rp${totalPrice.toDecimalString()}) Add to Order",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White

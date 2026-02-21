@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import dev.faizal.core.common.utils.toRupiahFormatDecimal
 import dev.faizal.core.designsystem.AccentGreen
 import dev.faizal.core.domain.model.report.TopProductReport
 
@@ -147,7 +148,7 @@ fun DetailedProductCard(
                         color = AccentGreen.copy(alpha = 0.15f)
                     ) {
                         Text(
-                            text = "Rp ${String.format("%,.0f", product.totalAmount)}",
+                            text = product.totalAmount.toRupiahFormatDecimal(),
                             fontSize = 11.sp,
                             color = AccentGreen,
                             fontWeight = FontWeight.SemiBold,

@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import dev.faizal.core.common.utils.toDecimalString
 import dev.faizal.core.designsystem.AccentGreen
 import dev.faizal.core.domain.model.report.DailySalesReport
 
@@ -70,7 +71,7 @@ fun DailySalesCardItem(sale: DailySalesReport) {
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    "${String.format("%,.2f", sale.totalAmount)}",
+                    sale.totalAmount.toDecimalString(),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = AccentGreen

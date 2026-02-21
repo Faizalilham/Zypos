@@ -23,6 +23,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.faizal.core.common.utils.formatDateToIndonesian
+import dev.faizal.core.common.utils.toCurrencyString
 import dev.faizal.core.designsystem.AccentGreen
 import dev.faizal.core.designsystem.R
 import dev.faizal.core.domain.model.report.DailySalesReport
@@ -73,7 +74,7 @@ fun TransactionTableRow(
 
         // Total Amount
         Text(
-            text = "Rp ${String.format("%,.2f", transaction.totalAmount)}",
+            text = transaction.totalAmount.toCurrencyString(),
             modifier = Modifier.weight(1.2f),
             fontSize = 14.sp,
             fontWeight = FontWeight.Medium,
