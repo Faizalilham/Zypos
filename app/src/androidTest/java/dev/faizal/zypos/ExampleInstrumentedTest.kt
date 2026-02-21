@@ -19,6 +19,6 @@ class ExampleInstrumentedTest {
     fun useAppContext() {
         // Context of the app under test.
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
-        assertEquals("dev.faizal.zypos", appContext.packageName)
+        assertEquals("dev.faizal.zypos.dev", appContext.packageName)
     }
 }
