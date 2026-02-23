@@ -7,7 +7,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -15,6 +19,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -26,9 +31,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import dev.faizal.core.designsystem.R
 import dev.faizal.core.common.utils.ScreenConfig
 import dev.faizal.core.common.utils.rememberScreenConfig
+import dev.faizal.core.designsystem.R
 import dev.faizal.dashboard.ReportScreen
 import dev.faizal.favorite.FavoriteProductDetailScreen
 import dev.faizal.features.menu.MenuManagementScreen
@@ -80,6 +85,13 @@ fun MainNavigation(
     }
 }
 
+private val bottomNavScreens = listOf(
+    MainRoute.Overview,
+    MainRoute.Order,
+    MainRoute.Menu
+)
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PhoneLayout(
@@ -93,46 +105,77 @@ fun PhoneLayout(
 ) {
     val scope = rememberCoroutineScope()
 
+    // Screens yang bukan bagian bottom nav → tampilkan full screen tanpa bottom bar
+    val isSubScreen = selectedScreen is MainRoute.TransactionAll ||
+            selectedScreen is MainRoute.TransactionSales
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
+        topBar = {
+            // TopAppBar hanya muncul di sub-screen untuk tombol back
+            if (isSubScreen) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = when (selectedScreen) {
+                                is MainRoute.TransactionAll -> "All Transactions 💰"
+                                is MainRoute.TransactionSales -> "Favorite Products 🏆"
+                                else -> ""
+                            }
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { onScreenSelected(MainRoute.Overview) }) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Back"
+                            )
+                        }
+                    }
+                )
+            }
+        },
         bottomBar = {
-            NavigationBar(
-                containerColor = MaterialTheme.colorScheme.surface,
-                tonalElevation = 8.dp
-            ) {
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            painter = painterResource(R.drawable.dashboard_outlined),
-                            contentDescription = "Dashboard"
-                        )
-                    },
-                    label = { Text("Dashboard") },
-                    selected = selectedScreen is MainRoute.Overview,
-                    onClick = { onScreenSelected(MainRoute.Overview) }
-                )
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            painter = painterResource(R.drawable.order_list_outlined),
-                            contentDescription = "Order"
-                        )
-                    },
-                    label = { Text("Order") },
-                    selected = selectedScreen is MainRoute.Order,
-                    onClick = { onScreenSelected(MainRoute.Order) }
-                )
-                NavigationBarItem(
-                    icon = {
-                        Icon(
-                            painter = painterResource(R.drawable.menu_outlined),
-                            contentDescription = "Menu"
-                        )
-                    },
-                    label = { Text("Menu") },
-                    selected = selectedScreen is MainRoute.Menu,
-                    onClick = { onScreenSelected(MainRoute.Menu) }
-                )
+            // Bottom nav hanya tampil di screen utama
+            if (!isSubScreen) {
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 8.dp
+                ) {
+                    NavigationBarItem(
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.dashboard_outlined),
+                                contentDescription = "Dashboard"
+                            )
+                        },
+                        label = { Text("Dashboard") },
+                        selected = selectedScreen is MainRoute.Overview,
+                        onClick = { onScreenSelected(MainRoute.Overview) }
+                    )
+                    NavigationBarItem(
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.order_list_outlined),
+                                contentDescription = "Order"
+                            )
+                        },
+                        label = { Text("Order") },
+                        selected = selectedScreen is MainRoute.Order,
+                        onClick = { onScreenSelected(MainRoute.Order) }
+                    )
+                    NavigationBarItem(
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.menu_outlined),
+                                contentDescription = "Menu"
+                            )
+                        },
+                        label = { Text("Menu") },
+                        selected = selectedScreen is MainRoute.Menu,
+                        onClick = { onScreenSelected(MainRoute.Menu) }
+                    )
+                }
             }
         }
     ) { paddingValues ->
@@ -140,7 +183,16 @@ fun PhoneLayout(
             when (selectedScreen) {
                 is MainRoute.Overview -> ReportScreen(
                     screenConfig = screenConfig,
-                    onToggleSidebar = {}
+                    onToggleSidebar = {},
+                    isDarkMode = isDarkMode,
+                    onDarkModeChange = onDarkModeChange,
+                    // Navigasi ke sub-screen dari tombol di ReportScreen
+                    onNavigationFavorite = {
+                        onScreenSelected(MainRoute.TransactionSales)
+                    },
+                    onNavigationDailySales = {
+                        onScreenSelected(MainRoute.TransactionAll)
+                    }
                 )
                 is MainRoute.Order -> OrderScreen(
                     viewModel = orderViewModel,
@@ -167,12 +219,17 @@ fun PhoneLayout(
                     onToggleSidebar = {}
                 )
                 is MainRoute.TransactionAll -> {
-                    // TODO: Implementasi TransactionAllScreen
-                    Box(modifier = Modifier.fillMaxSize())
+                    TransactionAllScreen(
+                        screenConfig = screenConfig,
+                        onToggleSidebar = {}
+                    )
                 }
                 is MainRoute.TransactionSales -> {
-                    // TODO: Implementasi TransactionSalesScreen
-                    Box(modifier = Modifier.fillMaxSize())
+                    FavoriteProductDetailScreen(
+                        screenConfig = screenConfig,
+                        onToggleSidebar = {},
+                        onBack = { onScreenSelected(MainRoute.Overview) }
+                    )
                 }
             }
         }

@@ -12,23 +12,34 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import dev.faizal.core.common.utils.ScreenConfig
-import dev.faizal.core.designsystem.*
+import dev.faizal.core.common.utils.getCurrentDateInIndonesian
+import dev.faizal.core.common.utils.toCurrencyString
+import dev.faizal.core.designsystem.CardBlueDark
+import dev.faizal.core.designsystem.CardBlueLight
+import dev.faizal.core.designsystem.CardGreenDark
+import dev.faizal.core.designsystem.CardGreenLight
+import dev.faizal.core.designsystem.CardYellowDark
+import dev.faizal.core.designsystem.CardYellowLight
+import dev.faizal.core.designsystem.R
 import dev.faizal.dashboard.component.AllOrdersCard
 import dev.faizal.dashboard.component.DatePeriodCard
 import dev.faizal.dashboard.component.FavoriteProductCard
@@ -37,7 +48,6 @@ import dev.faizal.dashboard.component.StatCard
 import dev.faizal.ui.component.Header
 import java.text.NumberFormat
 import java.util.Locale
-import dev.faizal.core.common.utils.*
 
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -46,6 +56,7 @@ import dev.faizal.core.common.utils.*
 fun ReportScreen(
     screenConfig: ScreenConfig,
     isDarkMode: Boolean = false,
+    onDarkModeChange: (Boolean) -> Unit = {},
     onToggleSidebar: () -> Unit = {},
     onNavigationFavorite : () -> Unit = {},
     onNavigationDailySales : () -> Unit = {}
@@ -104,6 +115,16 @@ fun ReportScreen(
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onBackground
                 )
+                IconButton(onClick = { onDarkModeChange(!isDarkMode) }) {
+                    Icon(
+                        painter = painterResource(
+                            id = if (isDarkMode) R.drawable.sun else R.drawable.moon
+                        ),
+                        contentDescription = if (isDarkMode) "Switch to Light Mode" else "Switch to Dark Mode",
+                        modifier = Modifier.size(24.dp),
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                }
             } else {
                 Header(
                     title = "Let's Do Your Best Today",

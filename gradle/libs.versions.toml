@@ -27,6 +27,7 @@ truth = "1.1.5"
 androidxTestExt = "1.1.5"
 androidxTestRunner = "1.5.2"
 androidxTestRules = "1.5.0"
+sonarqube = "5.1.0.4882"
 
 
 [libraries]
@@ -98,3 +99,4 @@ hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
 jetbrains-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
+sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }

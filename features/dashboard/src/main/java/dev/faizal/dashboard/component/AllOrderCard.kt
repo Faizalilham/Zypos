@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.faizal.core.domain.model.report.DailySalesReport
 import dev.faizal.ui.component.ViewAllButton
-import kotlin.collections.forEach
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable

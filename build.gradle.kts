@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.serialization) apply false
     alias(libs.plugins.android.library) apply false
     alias(libs.plugins.jetbrains.kotlin.jvm) apply false
+    alias(libs.plugins.sonarqube) apply true
 }
 true
 
@@ -34,4 +35,41 @@ subprojects {
             }
         }
     }
+}
+
+sonarqube {
+    properties {
+        property("sonar.projectKey", "Faizalilham_Zypos")
+        property("sonar.organization", "Faizalilham")
+        property("sonar.host.url", "https://sonarcloud.io")           
+        property("sonar.qualitygate.wait", "true")
+        property(
+            "sonar.coverage.jacoco.xmlReportPaths",
+            subprojects.joinToString(",") { proj ->
+                "${proj.projectDir}/build/reports/jacoco/jacocoDebugTestReport/jacocoDebugTestReport.xml"
+            }
+        )
+    }
+}
+
+tasks.register("jacocoAllModulesReport") {
+    group = "Reporting"
+    description = "Generate JaCoCo reports for all modules"
+
+    dependsOn(
+        subprojects.flatMap { subproject ->
+            subproject.tasks.matching { it.name == "jacocoDebugTestReport" }
+        }
+    )
+}
+
+tasks.register("jacocoAllModulesVerification") {
+    group = "Verification"
+    description = "Verify coverage for all modules"
+
+    dependsOn(
+        subprojects.flatMap { subproject ->
+            subproject.tasks.matching { it.name == "jacocoDebugCoverageVerification" }
+        }
+    )
 }

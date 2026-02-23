@@ -8,11 +8,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.faizal.core.domain.model.report.TopProductReport
 import dev.faizal.core.domain.repository.OrderRepository
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import javax.inject.Inject
 
 @RequiresApi(Build.VERSION_CODES.O)

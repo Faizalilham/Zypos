@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-import kotlin.collections.map
 
 @HiltViewModel
 class OrderViewModel @Inject constructor(

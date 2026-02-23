@@ -10,7 +10,18 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import dev.faizal.core.designsystem.*
+import dev.faizal.core.designsystem.AccentGreen
+import dev.faizal.core.designsystem.BackgroundLight
+import dev.faizal.core.designsystem.BackgroundWhite
+import dev.faizal.core.designsystem.BorderLight
+import dev.faizal.core.designsystem.BrownPrimary
+import dev.faizal.core.designsystem.PrimaryBlue
+import dev.faizal.core.designsystem.StatusError
+import dev.faizal.core.designsystem.SurfaceGray
+import dev.faizal.core.designsystem.SurfaceWhite
+import dev.faizal.core.designsystem.TextPrimary
+import dev.faizal.core.designsystem.TextSecondary
+import dev.faizal.core.designsystem.Typography
 
 
 private val LightColorScheme = lightColorScheme(

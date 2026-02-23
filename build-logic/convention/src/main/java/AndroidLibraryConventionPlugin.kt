@@ -1,12 +1,10 @@
 import com.android.build.gradle.LibraryExtension
 import dev.faizal.convention.configureKotlinAndroid
-import dev.faizal.convention.libs
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.configure
 import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.kotlin
-import kotlin.text.get
 
 class AndroidLibraryConventionPlugin : Plugin<Project> {
     override fun apply(target: Project) {

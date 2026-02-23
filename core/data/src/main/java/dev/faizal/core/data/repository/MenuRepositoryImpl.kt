@@ -1,11 +1,11 @@
 package dev.faizal.core.data.repository
 
 
-import javax.inject.Inject
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Log
 import dev.faizal.core.data.datasource.dao.CategoryDao
 import dev.faizal.core.data.datasource.dao.MenuDao
 import dev.faizal.core.data.datasource.entity.MenuEntity
@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.map
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
+import javax.inject.Inject
 
 class MenuRepositoryImpl @Inject constructor(
     private val menuDao: MenuDao,
@@ -178,7 +179,10 @@ class MenuRepositoryImpl @Inject constructor(
         try {
             val file = File(imagePath)
             if (file.exists()) {
-                file.delete()
+                val deleted = file.delete()
+                if (!deleted) {
+                    Log.w("Storage", "Failed to delete file: $imagePath")
+                }
             }
         } catch (e: Exception) {
             e.printStackTrace()

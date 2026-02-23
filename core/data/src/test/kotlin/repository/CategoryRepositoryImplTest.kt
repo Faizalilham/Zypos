@@ -5,7 +5,14 @@ import com.google.common.truth.Truth.assertThat
 import dev.faizal.core.data.datasource.dao.CategoryDao
 import dev.faizal.core.data.datasource.entity.CategoryEntity
 import dev.faizal.core.data.repository.CategoryRepositoryImpl
-import io.mockk.*
+import io.mockk.Runs
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.After

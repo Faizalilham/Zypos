@@ -8,7 +8,6 @@ import dev.faizal.core.data.datasource.entity.DailySales
 import dev.faizal.core.data.datasource.entity.MonthlySales
 import dev.faizal.core.data.datasource.entity.OrderEntity
 import dev.faizal.core.data.datasource.entity.TopProduct
-import dev.faizal.core.domain.model.menu.Category
 import dev.faizal.core.domain.model.menu.Menu
 import dev.faizal.core.domain.model.order.Order
 import dev.faizal.core.domain.model.order.OrderStatus
@@ -16,7 +15,15 @@ import dev.faizal.core.domain.model.order.OrderType
 import dev.faizal.core.domain.model.order.PaymentStatus
 import dev.faizal.core.domain.model.order.Size
 import dev.faizal.core.domain.model.order.Temperature
-import io.mockk.*
+import io.mockk.Runs
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.After

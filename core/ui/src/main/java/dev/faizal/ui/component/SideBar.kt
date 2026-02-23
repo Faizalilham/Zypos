@@ -64,7 +64,7 @@ fun Sidebar(
             .width(sidebarWidth)
             .fillMaxHeight()
             .background(MaterialTheme.colorScheme.surface)
-            .padding(if (isCompact) 16.dp else 16.dp),
+            .padding(if (isCompact) 8.dp else 16.dp),
         horizontalAlignment = if (isCompact) Alignment.CenterHorizontally else Alignment.Start
     ) {
         Spacer(modifier = Modifier.height(8.dp))

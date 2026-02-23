@@ -1,5 +1,6 @@
 plugins {
     id("dev.faizal.android.feature")
+    id("dev.faizal.convention.jacoco")
 }
 
 android {

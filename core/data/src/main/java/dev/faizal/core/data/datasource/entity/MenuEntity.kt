@@ -1,9 +1,9 @@
 package dev.faizal.core.data.datasource.entity
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 import androidx.room.ForeignKey
 import androidx.room.Index
+import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "menu_items",

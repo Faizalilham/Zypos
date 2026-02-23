@@ -1,6 +1,7 @@
 plugins {
     id("dev.faizal.android.library")
     id("dev.faizal.android.hilt")
+    id("dev.faizal.convention.jacoco")
 }
 
 android {

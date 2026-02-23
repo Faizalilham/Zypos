@@ -9,7 +9,15 @@ import dev.faizal.core.data.datasource.dao.MenuDao
 import dev.faizal.core.data.datasource.entity.CategoryEntity
 import dev.faizal.core.data.datasource.entity.MenuEntity
 import dev.faizal.core.data.repository.MenuRepositoryImpl
-import io.mockk.*
+import io.mockk.Runs
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.slot
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import org.junit.After

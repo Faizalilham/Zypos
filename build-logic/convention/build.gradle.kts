@@ -53,5 +53,9 @@ gradlePlugin {
             id = "dev.faizal.android.application.compose"
             implementationClass = "AndroidApplicationComposeConventionPlugin"
         }
+        register("jacocoConvention") {
+            id = "dev.faizal.convention.jacoco"
+            implementationClass = "JacocoConventionPlugin"
+        }
     }
 }
