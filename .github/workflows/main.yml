@@ -129,6 +129,9 @@ jobs:
         with:
           fetch-depth: 0  # Shallow clones disabled for SonarQube
 
+      - name: Check Coverage Files
+        run: find . -name "*.xml" -path "*/jacoco/*" | head -20
+
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
