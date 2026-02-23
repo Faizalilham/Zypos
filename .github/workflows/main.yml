@@ -148,7 +148,7 @@ jobs:
 
       # Run tests for coverage
       - name: Run Tests for Coverage
-        run: ./gradlew test jacocoTestReport
+        run: ./gradlew testDebugUnitTest jacocoAllModulesReport jacocoAllModulesVerification
 
       # SonarQube Scan
       - name: SonarQube Scan
