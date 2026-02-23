@@ -40,8 +40,8 @@ subprojects {
 sonarqube {
     properties {
         property("sonar.projectKey", "Faizalilham_Zypos")
-        property("sonar.organization", "Faizalilham")
-        property("sonar.host.url", "https://sonarcloud.io")           
+        property("sonar.organization", "faizalilham")
+        property("sonar.host.url", "https://sonarcloud.io")
         property("sonar.qualitygate.wait", "true")
         property(
             "sonar.coverage.jacoco.xmlReportPaths",
