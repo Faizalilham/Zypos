@@ -156,10 +156,10 @@ jobs:
       - name: Debug Coverage Paths
         run: |
           echo "=== JaCoCo XML Files ==="
-          find . -name "jacocoDebugTestReport.xml" | head -20
+          find . -name "jacocoDebugTestReport.xml"
 
-          echo "=== Sonar Coverage Path Config ==="
-          ./gradlew sonarqube --info 2>&1 | grep -i "jacoco\|coverage" | head -30
+          echo "=== Check XML Content ==="
+          find . -name "jacocoDebugTestReport.xml" -exec sh -c 'echo "--- $1 ---"; head -5 "$1"' _ {} \;
 
       # SonarQube Scan
       - name: SonarQube Scan

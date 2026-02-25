@@ -39,15 +39,17 @@ subprojects {
 
 sonarqube {
     properties {
+        val paths = subprojects.joinToString(",") { proj ->
+            "${proj.projectDir}/build/reports/jacoco/jacocoDebugTestReport/jacocoDebugTestReport.xml"
+        }
+
+        println("=== SONAR JACOCO PATHS ===")
+        println(paths)
+
         property("sonar.projectKey", "Faizalilham_Zypos")
         property("sonar.organization", "faizalilham")
         property("sonar.host.url", "https://sonarcloud.io")
         property("sonar.qualitygate.wait", "true")
-        val paths = subprojects.joinToString(",") { proj ->
-            "${proj.projectDir}/build/reports/jacoco/jacocoDebugTestReport/jacocoDebugTestReport.xml"
-        }
-        println("=== SONAR JACOCO PATHS ===")
-        println(paths)
         property("sonar.coverage.jacoco.xmlReportPaths", paths)
     }
 }
