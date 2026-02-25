@@ -153,6 +153,14 @@ jobs:
       - name: Check Coverage Files
         run: find . -name "*.xml" -path "*/jacoco/*" | head -20
 
+      - name: Debug Coverage Paths
+        run: |
+          echo "=== JaCoCo XML Files ==="
+          find . -name "jacocoDebugTestReport.xml" | head -20
+
+          echo "=== Sonar Coverage Path Config ==="
+          ./gradlew sonarqube --info 2>&1 | grep -i "jacoco\|coverage" | head -30
+
       # SonarQube Scan
       - name: SonarQube Scan
         run: ./gradlew sonarqube -Dsonar.login=${{ secrets.SONAR_TOKEN }}

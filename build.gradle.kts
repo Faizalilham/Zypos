@@ -43,12 +43,12 @@ sonarqube {
         property("sonar.organization", "faizalilham")
         property("sonar.host.url", "https://sonarcloud.io")
         property("sonar.qualitygate.wait", "true")
-        property(
-            "sonar.coverage.jacoco.xmlReportPaths",
-            subprojects.joinToString(",") { proj ->
-                "${proj.projectDir}/build/reports/jacoco/jacocoDebugTestReport/jacocoDebugTestReport.xml"
-            }
-        )
+        val paths = subprojects.joinToString(",") { proj ->
+            "${proj.projectDir}/build/reports/jacoco/jacocoDebugTestReport/jacocoDebugTestReport.xml"
+        }
+        println("=== SONAR JACOCO PATHS ===")
+        println(paths)
+        property("sonar.coverage.jacoco.xmlReportPaths", paths)
     }
 }
 
