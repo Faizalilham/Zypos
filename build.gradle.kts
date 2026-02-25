@@ -39,18 +39,17 @@ subprojects {
 
 sonarqube {
     properties {
-        val paths = subprojects.joinToString(",") { proj ->
-            "${proj.projectDir}/build/reports/jacoco/jacocoDebugTestReport/jacocoDebugTestReport.xml"
-        }
-
-        println("=== SONAR JACOCO PATHS ===")
-        println(paths)
-
         property("sonar.projectKey", "Faizalilham_Zypos")
         property("sonar.organization", "faizalilham")
         property("sonar.host.url", "https://sonarcloud.io")
         property("sonar.qualitygate.wait", "true")
-        property("sonar.coverage.jacoco.xmlReportPaths", paths)
+        property("sonar.coverage.jacoco.xmlReportPaths",
+            subprojects
+                .map { "${it.projectDir}/build/reports/jacoco/jacocoDebugTestReport/jacocoDebugTestReport.xml" }
+                .joinToString(",")
+        )
+        // Tambahkan ini — eksplisit kasih tahu Sonar pakai JaCoCo
+        property("sonar.java.coveragePlugin", "jacoco")
     }
 }
 
