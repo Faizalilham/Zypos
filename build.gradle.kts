@@ -45,9 +45,12 @@ sonarqube {
         property("sonar.qualitygate.wait", "true")
         property(
             "sonar.coverage.jacoco.xmlReportPaths",
-            subprojects.joinToString(",") { proj ->
-                "${proj.projectDir}/build/reports/jacoco/jacocoDebugTestReport/jacocoDebugTestReport.xml"
-            }
+            subprojects
+                .map { proj ->
+                    "${proj.projectDir}/build/reports/jacoco/jacocoDebugTestReport/jacocoDebugTestReport.xml"
+                }
+                .filter { path -> File(path).exists() }
+                .joinToString(",")
         )
     }
 }
