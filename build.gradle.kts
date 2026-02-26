@@ -43,13 +43,28 @@ sonarqube {
         property("sonar.organization", "faizalilham")
         property("sonar.host.url", "https://sonarcloud.io")
         property("sonar.qualitygate.wait", "true")
-        property("sonar.coverage.jacoco.xmlReportPaths",
+        property("sonar.java.coveragePlugin", "jacoco")
+
+        // Exclude file yang memang tidak perlu ditest
+        property(
+            "sonar.coverage.exclusions",
+            """
+            **/ui/screens/**,
+            **/ui/components/**,
+            **/MainScreen*,
+            **/OverviewScreen*,
+            **/di/**,
+            **/*Module*,
+            **/*_Impl*
+            """.trimIndent().replace("\n", "")
+        )
+
+        property(
+            "sonar.coverage.jacoco.xmlReportPaths",
             subprojects
                 .map { "${it.projectDir}/build/reports/jacoco/jacocoDebugTestReport/jacocoDebugTestReport.xml" }
                 .joinToString(",")
         )
-        // Tambahkan ini — eksplisit kasih tahu Sonar pakai JaCoCo
-        property("sonar.java.coveragePlugin", "jacoco")
     }
 }
 
