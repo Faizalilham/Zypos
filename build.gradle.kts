@@ -53,8 +53,6 @@ sonarqube {
             "sonar.coverage.jacoco.xmlReportPaths",
             listOf(
                 "${rootProject.projectDir}/core/data/build/reports/jacoco/jacocoDebugTestReport/jacocoDebugTestReport.xml",
-                "${rootProject.projectDir}/features/menu/build/reports/jacoco/jacocoDebugTestReport/jacocoDebugTestReport.xml",
-                "${rootProject.projectDir}/features/order/build/reports/jacoco/jacocoDebugTestReport/jacocoDebugTestReport.xml",
             ).joinToString(",")
         )
 
