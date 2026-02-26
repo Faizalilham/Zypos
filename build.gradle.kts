@@ -51,9 +51,7 @@ sonarqube {
 
         property(
             "sonar.coverage.jacoco.xmlReportPaths",
-            listOf(
-                "${rootProject.projectDir}/core/data/build/reports/jacoco/jacocoDebugTestReport/jacocoDebugTestReport.xml",
-            ).joinToString(",")
+            "**/build/reports/jacoco/**/*.xml"
         )
 
         // Exclude UI dari coverage check
