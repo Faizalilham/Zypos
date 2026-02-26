@@ -43,18 +43,12 @@ sonarqube {
         property("sonar.organization", "faizalilham")
         property("sonar.host.url", "https://sonarcloud.io")
         property("sonar.qualitygate.wait", "true")
-        property("sonar.java.coveragePlugin", "jacoco")
-
-        // Tambahkan ini ↓
-        property("sonar.sources", "src/main/java,src/main/kotlin")
-        property("sonar.tests", "src/test/java,src/test/kotlin")
 
         property(
             "sonar.coverage.jacoco.xmlReportPaths",
-            "**/build/reports/jacoco/**/*.xml"
+            "**/build/reports/jacoco/jacocoDebugTestReport/jacocoDebugTestReport.xml"
         )
 
-        // Exclude UI dari coverage check
         property(
             "sonar.coverage.exclusions",
             "**/ui/screens/**,**/ui/components/**,**/*Screen*,**/di/**,**/*Module*"
