@@ -49,7 +49,6 @@ class JacocoConventionPlugin : Plugin<Project> {
                         "**/*Binding.*",
                         "**/hilt_aggregated_deps/**",
                         "**/*ComposableSingletons*",
-                        "**/*_Impl*",
                     )
 
                     classDirectories.setFrom(
