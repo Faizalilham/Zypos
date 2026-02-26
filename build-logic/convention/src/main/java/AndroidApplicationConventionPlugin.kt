@@ -15,6 +15,18 @@ class AndroidApplicationConventionPlugin : Plugin<Project> {
 
 
             extensions.configure<ApplicationExtension> {
+                buildTypes {
+                    getByName("release") {
+                        isMinifyEnabled = true
+                        isShrinkResources = true
+                        proguardFiles(
+                            getDefaultProguardFile("proguard-android-optimize.txt"),
+                            rootProject.file("proguard/proguard-base.pro"),
+                            rootProject.file("proguard/proguard-gson.pro"),
+                            rootProject.file("proguard/proguard-coroutines.pro"),
+                        )
+                    }
+                }
                 configureKotlinAndroid(this)
                 defaultConfig.targetSdk = 35
                 compileOptions {

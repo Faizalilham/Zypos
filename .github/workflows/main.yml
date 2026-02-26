@@ -146,6 +146,24 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
+      - name: Upload Lint Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-report
+          path: |
+            **/build/reports/lint-results-debug.xml
+            **/build/reports/lint-results-*Debug.xml
+          retention-days: 7
+
+      # Di job sonarqube - tambahkan download sebelum scan
+      - name: Download Lint Reports
+        uses: actions/download-artifact@v4
+        with:
+          name: lint-report
+
+      - name: Run Tests for Coverage
+        run: ./gradlew testDebugUnitTest jacocoAllModulesReport jacocoAllModulesVerification
       # Run tests for coverage
       - name: Run Tests for Coverage
         run: ./gradlew testDebugUnitTest jacocoAllModulesReport jacocoAllModulesVerification

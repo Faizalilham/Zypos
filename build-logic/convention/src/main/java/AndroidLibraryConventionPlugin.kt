@@ -17,6 +17,12 @@ class AndroidLibraryConventionPlugin : Plugin<Project> {
             extensions.configure<LibraryExtension> {
                 configureKotlinAndroid(this)
                 defaultConfig.targetSdk = 35
+                buildTypes {
+                    getByName("release") {
+                        isMinifyEnabled = false
+                        consumerProguardFiles("consumer-rules.pro")
+                    }
+                }
             }
             dependencies {
                 add("androidTestImplementation", kotlin("test"))
