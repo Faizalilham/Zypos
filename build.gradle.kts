@@ -45,19 +45,9 @@ sonarqube {
         property("sonar.qualitygate.wait", "true")
         property("sonar.java.coveragePlugin", "jacoco")
 
-        // Exclude file yang memang tidak perlu ditest
-        property(
-            "sonar.coverage.exclusions",
-            """
-            **/ui/screens/**,
-            **/ui/components/**,
-            **/MainScreen*,
-            **/OverviewScreen*,
-            **/di/**,
-            **/*Module*,
-            **/*_Impl*
-            """.trimIndent().replace("\n", "")
-        )
+        // Tambahkan ini ↓
+        property("sonar.sources", "src/main/java,src/main/kotlin")
+        property("sonar.tests", "src/test/java,src/test/kotlin")
 
         property(
             "sonar.coverage.jacoco.xmlReportPaths",
@@ -66,6 +56,12 @@ sonarqube {
                 "${rootProject.projectDir}/features/menu/build/reports/jacoco/jacocoDebugTestReport/jacocoDebugTestReport.xml",
                 "${rootProject.projectDir}/features/order/build/reports/jacoco/jacocoDebugTestReport/jacocoDebugTestReport.xml",
             ).joinToString(",")
+        )
+
+        // Exclude UI dari coverage check
+        property(
+            "sonar.coverage.exclusions",
+            "**/ui/screens/**,**/ui/components/**,**/*Screen*,**/di/**,**/*Module*"
         )
     }
 }
