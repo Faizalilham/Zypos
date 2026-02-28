@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.faizal.core.common.utils.toCurrencyString
@@ -25,32 +26,22 @@ fun TransactionSummaryCard(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(12.dp),
         color = MaterialTheme.colorScheme.primaryContainer
     ) {
-        if (isPhone) {
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                SummaryItem("Total Days", totalTransactions.toString())
-                SummaryItem("Total Revenue", totalAmount.toCurrencyString())
-                SummaryItem("Total Orders", totalOrders.toString())
-            }
-        } else {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                SummaryItem("Total Days", totalTransactions.toString())
-                VerticalDivider(modifier = Modifier.height(40.dp))
-                SummaryItem("Total Revenue", totalAmount.toCurrencyString())
-                VerticalDivider(modifier = Modifier.height(40.dp))
-                SummaryItem("Total Orders", totalOrders.toString())
-            }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp, horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            SummaryItem("Total Days", totalTransactions.toString())
+            VerticalDivider(modifier = Modifier.height(36.dp))
+            SummaryItem("Revenue", totalAmount.toCurrencyString())
+            VerticalDivider(modifier = Modifier.height(36.dp))
+            SummaryItem("Orders", totalOrders.toString())
         }
     }
 }

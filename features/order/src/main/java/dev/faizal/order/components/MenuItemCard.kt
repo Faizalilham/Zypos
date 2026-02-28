@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
+import dev.faizal.core.common.utils.toCurrencyString
 import dev.faizal.core.domain.model.menu.Menu
 
 @Composable
@@ -40,32 +41,35 @@ fun MenuItemCard(
     isSelected: Boolean,
     modifier: Modifier = Modifier,
     onAddToCart: () -> Unit = {},
+    isPhone: Boolean = false
 ) {
+    val imageSize = if (isPhone) 52.dp else 64.dp
+    val titleFontSize = if (isPhone) 13.sp else 15.sp
+    val priceFontSize = if (isPhone) 13.sp else 17.sp
+    val cardPadding = if (isPhone) 10.dp else 12.dp
+
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected)
-                MaterialTheme.colorScheme.primaryContainer 
-            else
-                MaterialTheme.colorScheme.surface 
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
+            else MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = BorderStroke(
             width = if (isSelected) 2.dp else 1.dp,
-            color = if (isSelected)
-                MaterialTheme.colorScheme.primary 
-            else
-                MaterialTheme.colorScheme.outlineVariant 
+            color = if (isSelected) MaterialTheme.colorScheme.primary
+            else MaterialTheme.colorScheme.outlineVariant
         )
     ) {
         Column(modifier = Modifier.padding(0.dp)) {
+            // Image
             Box(
                 modifier = Modifier
-                    .padding(16.dp)
-                    .size(64.dp)
+                    .padding(cardPadding)
+                    .size(imageSize)
                     .clip(RoundedCornerShape(8.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant), 
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
                 AsyncImage(
@@ -75,65 +79,88 @@ fun MenuItemCard(
                         .build(),
                     contentDescription = "Menu Image",
                     modifier = Modifier
-                        .size(50.dp)
+                        .size(imageSize)
                         .clip(RoundedCornerShape(8.dp)),
                     contentScale = ContentScale.Crop
                 )
             }
 
-            Column(modifier = Modifier.padding(12.dp)) {
+            Column(modifier = Modifier.padding(cardPadding)) {
                 Text(
                     text = item.name,
                     style = MaterialTheme.typography.titleSmall.copy(
                         fontWeight = FontWeight.SemiBold,
-                        fontSize = 15.sp
+                        fontSize = titleFontSize
                     ),
-                    color = MaterialTheme.colorScheme.onSurface, 
-                    maxLines = 1,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
 
                 Text(
                     text = "${item.sold} Sold",
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant 
+                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                Spacer(modifier = Modifier.height(12.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Spacer(modifier = Modifier.height(if (isPhone) 8.dp else 12.dp))
+
+                if (isPhone) {
+                    // Phone: harga dan tombol vertikal agar tidak sumpek
                     Text(
-                        text = "Rp ${item.basePrice}",
+                        text = item.basePrice.toCurrencyString(),
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            fontSize = 17.sp
+                            fontSize = priceFontSize
                         ),
-                        color = MaterialTheme.colorScheme.onSurface 
+                        color = MaterialTheme.colorScheme.onSurface
                     )
-
+                    Spacer(modifier = Modifier.height(6.dp))
                     OutlinedButton(
                         onClick = onAddToCart,
                         colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surface, 
-                            contentColor = MaterialTheme.colorScheme.onSurface 
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.primary
                         ),
                         shape = RoundedCornerShape(6.dp),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline), 
-                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
-                        modifier = Modifier.height(30.dp)
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(30.dp)
+                    ) {
+                        Text("+ Add", fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                    }
+                } else {
+                    // Tablet: harga dan tombol horizontal
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "Add Menu",
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Medium
-                            )
+                            text = item.basePrice.toCurrencyString(),
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = priceFontSize
+                            ),
+                            color = MaterialTheme.colorScheme.onSurface
                         )
+                        OutlinedButton(
+                            onClick = onAddToCart,
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                contentColor = MaterialTheme.colorScheme.onSurface
+                            ),
+                            shape = RoundedCornerShape(6.dp),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
+                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
+                            modifier = Modifier.height(30.dp)
+                        ) {
+                            Text("Add Menu", fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                        }
                     }
                 }
             }

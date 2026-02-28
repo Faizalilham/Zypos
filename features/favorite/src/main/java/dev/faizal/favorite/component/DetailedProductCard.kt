@@ -40,10 +40,11 @@ import dev.faizal.core.domain.model.report.TopProductReport
 @Composable
 fun DetailedProductCard(
     product: TopProductReport,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() },
         colors = CardDefaults.cardColors(
@@ -54,15 +55,15 @@ fun DetailedProductCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(12.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Product Image
             Box(
                 modifier = Modifier
-                    .size(64.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .size(56.dp)
+                    .clip(RoundedCornerShape(10.dp))
                     .background(MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
@@ -74,48 +75,40 @@ fun DetailedProductCard(
                             .build(),
                         contentDescription = "Menu Image",
                         modifier = Modifier
-                            .size(50.dp)
-                            .clip(RoundedCornerShape(8.dp)),
+                            .size(56.dp)
+                            .clip(RoundedCornerShape(10.dp)),
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    Box(
-                        modifier = Modifier
-                            .size(50.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(Color(0xFFF5F5F5)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Default.Menu,
-                            contentDescription = null,
-                            tint = Color(0xFFBDBDBD),
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
+                    Icon(
+                        Icons.Default.Menu,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.5f),
+                        modifier = Modifier.size(24.dp)
+                    )
                 }
             }
 
             // Product Info
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(3.dp)
             ) {
                 Text(
                     text = product.menuName,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = product.categoryName,
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.padding(top = 4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(top = 2.dp)
                 ) {
                     // Orders Badge
                     Surface(
@@ -123,19 +116,19 @@ fun DetailedProductCard(
                         color = Color(0xFF2196F3).copy(alpha = 0.15f)
                     ) {
                         Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                            horizontalArrangement = Arrangement.spacedBy(3.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
                                 Icons.Default.ShoppingCart,
                                 contentDescription = null,
-                                modifier = Modifier.size(12.dp),
+                                modifier = Modifier.size(10.dp),
                                 tint = Color(0xFF2196F3)
                             )
                             Text(
                                 text = "${product.orderCount} orders",
-                                fontSize = 11.sp,
+                                fontSize = 10.sp,
                                 color = Color(0xFF2196F3),
                                 fontWeight = FontWeight.Medium
                             )
@@ -149,20 +142,20 @@ fun DetailedProductCard(
                     ) {
                         Text(
                             text = product.totalAmount.toRupiahFormatDecimal(),
-                            fontSize = 11.sp,
+                            fontSize = 10.sp,
                             color = AccentGreen,
                             fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
                         )
                     }
                 }
             }
 
-            // Arrow Icon
             Icon(
                 Icons.Default.KeyboardArrowRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(20.dp)
             )
         }
     }

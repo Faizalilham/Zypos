@@ -3,23 +3,26 @@ package dev.faizal.zypos.ui.screens
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -27,9 +30,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import dev.faizal.core.common.utils.ScreenConfig
 import dev.faizal.core.common.utils.rememberScreenConfig
@@ -42,7 +50,14 @@ import dev.faizal.order.OrderViewModel
 import dev.faizal.transaction.TransactionAllScreen
 import dev.faizal.ui.component.Sidebar
 import dev.faizal.ui.navigation.MainRoute
+import dev.faizal.zypos.ui.screens.transaction.TransactionScreen
 import kotlinx.coroutines.launch
+
+data class BottomNavItem(
+    val iconRes: Int,
+    val label: String,
+    val route: MainRoute
+)
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -85,13 +100,6 @@ fun MainNavigation(
     }
 }
 
-private val bottomNavScreens = listOf(
-    MainRoute.Overview,
-    MainRoute.Order,
-    MainRoute.Menu
-)
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3Api::class)
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun PhoneLayout(
@@ -105,76 +113,121 @@ fun PhoneLayout(
 ) {
     val scope = rememberCoroutineScope()
 
-    // Screens yang bukan bagian bottom nav → tampilkan full screen tanpa bottom bar
-    val isSubScreen = selectedScreen is MainRoute.TransactionAll ||
-            selectedScreen is MainRoute.TransactionSales
+    val navItems = listOf(
+        BottomNavItem(R.drawable.dashboard_outlined, "Dashboard", MainRoute.Overview),
+        BottomNavItem(R.drawable.order_list_outlined, "Order", MainRoute.Order),
+        BottomNavItem(R.drawable.ic_transaction, "Transaction", MainRoute.TransactionAll),
+        BottomNavItem(R.drawable.menu_outlined, "Menu", MainRoute.Menu)
+    )
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            // TopAppBar hanya muncul di sub-screen untuk tombol back
-            if (isSubScreen) {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = when (selectedScreen) {
-                                is MainRoute.TransactionAll -> "All Transactions 💰"
-                                is MainRoute.TransactionSales -> "Favorite Products 🏆"
-                                else -> ""
+        bottomBar = {
+            NavigationBar(
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 8.dp
+            ) {
+                navItems.forEach { item ->
+                    val isSelected = when (item.route) {
+                        is MainRoute.TransactionAll ->
+                            selectedScreen is MainRoute.TransactionAll || selectedScreen is MainRoute.TransactionSales
+                        else -> selectedScreen::class == item.route::class
+                    }
+
+                    val primaryColor = MaterialTheme.colorScheme.primary
+                    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
+
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { onScreenSelected(item.route) },
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (isSelected) {
+                            Box(
+                                modifier = Modifier
+                                    .padding(horizontal = 4.dp)
+                                    .background(
+                                        brush = Brush.verticalGradient(
+                                            colors = listOf(
+                                                primaryColor.copy(alpha = 0.12f),
+                                                Color.Transparent,
+                                                Color.Transparent,
+                                            )
+                                        ),
+                                        shape = RoundedCornerShape(0.dp)
+                                    )
+                                    .fillMaxWidth()
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentHeight(),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    // Indicator bar di atas
+                                    Box(
+                                        modifier = Modifier
+                                            .height(3.dp)
+                                            .fillMaxWidth()
+                                            .background(
+                                                color = primaryColor,
+                                                shape = RoundedCornerShape(
+                                                    bottomStart = 6.dp,
+                                                    bottomEnd = 6.dp
+                                                )
+                                            )
+                                    )
+
+                                    Spacer(modifier = Modifier.height(10.dp))
+
+                                    Icon(
+                                        painter = painterResource(item.iconRes),
+                                        contentDescription = item.label,
+                                        modifier = Modifier.size(24.dp),
+                                        tint = primaryColor
+                                    )
+
+                                    Spacer(modifier = Modifier.height(3.dp))
+
+                                    Text(
+                                        text = item.label,
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = primaryColor
+                                    )
+
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                }
                             }
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = { onScreenSelected(MainRoute.Overview) }) {
-                            Icon(
-                                imageVector = Icons.Default.ArrowBack,
-                                contentDescription = "Back"
-                            )
+                        } else {
+                            Column(
+                                modifier = Modifier.padding(vertical = 0.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Spacer(modifier = Modifier.height(13.dp))
+
+                                Icon(
+                                    painter = painterResource(item.iconRes),
+                                    contentDescription = item.label,
+                                    modifier = Modifier.size(24.dp),
+                                    tint = onSurfaceVariant
+                                )
+
+                                Spacer(modifier = Modifier.height(3.dp))
+
+                                Text(
+                                    text = item.label,
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    color = onSurfaceVariant
+                                )
+
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
                         }
                     }
-                )
-            }
-        },
-        bottomBar = {
-            // Bottom nav hanya tampil di screen utama
-            if (!isSubScreen) {
-                NavigationBar(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    tonalElevation = 8.dp
-                ) {
-                    NavigationBarItem(
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.dashboard_outlined),
-                                contentDescription = "Dashboard"
-                            )
-                        },
-                        label = { Text("Dashboard") },
-                        selected = selectedScreen is MainRoute.Overview,
-                        onClick = { onScreenSelected(MainRoute.Overview) }
-                    )
-                    NavigationBarItem(
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.order_list_outlined),
-                                contentDescription = "Order"
-                            )
-                        },
-                        label = { Text("Order") },
-                        selected = selectedScreen is MainRoute.Order,
-                        onClick = { onScreenSelected(MainRoute.Order) }
-                    )
-                    NavigationBarItem(
-                        icon = {
-                            Icon(
-                                painter = painterResource(R.drawable.menu_outlined),
-                                contentDescription = "Menu"
-                            )
-                        },
-                        label = { Text("Menu") },
-                        selected = selectedScreen is MainRoute.Menu,
-                        onClick = { onScreenSelected(MainRoute.Menu) }
-                    )
                 }
             }
         }
@@ -186,13 +239,8 @@ fun PhoneLayout(
                     onToggleSidebar = {},
                     isDarkMode = isDarkMode,
                     onDarkModeChange = onDarkModeChange,
-                    // Navigasi ke sub-screen dari tombol di ReportScreen
-                    onNavigationFavorite = {
-                        onScreenSelected(MainRoute.TransactionSales)
-                    },
-                    onNavigationDailySales = {
-                        onScreenSelected(MainRoute.TransactionAll)
-                    }
+                    onNavigationFavorite = { onScreenSelected(MainRoute.TransactionSales) },
+                    onNavigationDailySales = { onScreenSelected(MainRoute.TransactionAll) }
                 )
                 is MainRoute.Order -> OrderScreen(
                     viewModel = orderViewModel,
@@ -218,19 +266,11 @@ fun PhoneLayout(
                     screenConfig = screenConfig,
                     onToggleSidebar = {}
                 )
-                is MainRoute.TransactionAll -> {
-                    TransactionAllScreen(
-                        screenConfig = screenConfig,
-                        onToggleSidebar = {}
-                    )
-                }
-                is MainRoute.TransactionSales -> {
-                    FavoriteProductDetailScreen(
-                        screenConfig = screenConfig,
-                        onToggleSidebar = {},
-                        onBack = { onScreenSelected(MainRoute.Overview) }
-                    )
-                }
+                is MainRoute.TransactionAll,
+                is MainRoute.TransactionSales -> TransactionScreen(
+                    screenConfig = screenConfig,
+                    initialTab = if (selectedScreen is MainRoute.TransactionSales) 1 else 0
+                )
             }
         }
     }
@@ -281,12 +321,8 @@ fun TabletLayout(
                 is MainRoute.Overview -> ReportScreen(
                     screenConfig = screenConfig,
                     onToggleSidebar = onToggleSidebar,
-                    onNavigationFavorite = {
-                        onScreenSelected(MainRoute.TransactionSales)
-                    },
-                    onNavigationDailySales = {
-                        onScreenSelected(MainRoute.TransactionAll)
-                    }
+                    onNavigationFavorite = { onScreenSelected(MainRoute.TransactionSales) },
+                    onNavigationDailySales = { onScreenSelected(MainRoute.TransactionAll) }
                 )
                 is MainRoute.Order -> OrderScreen(
                     viewModel = orderViewModel,
@@ -312,18 +348,14 @@ fun TabletLayout(
                     screenConfig = screenConfig,
                     onToggleSidebar = onToggleSidebar
                 )
-                is MainRoute.TransactionAll -> {
-                    TransactionAllScreen(
-                        screenConfig = screenConfig,
-                        onToggleSidebar = onToggleSidebar,
-                    )
-                }
-                is MainRoute.TransactionSales -> {
-                    FavoriteProductDetailScreen(
-                        screenConfig = screenConfig,
-                        onToggleSidebar = onToggleSidebar,
-                    )
-                }
+                is MainRoute.TransactionAll -> TransactionAllScreen(
+                    screenConfig = screenConfig,
+                    onToggleSidebar = onToggleSidebar
+                )
+                is MainRoute.TransactionSales -> FavoriteProductDetailScreen(
+                    screenConfig = screenConfig,
+                    onToggleSidebar = onToggleSidebar
+                )
             }
         }
     }

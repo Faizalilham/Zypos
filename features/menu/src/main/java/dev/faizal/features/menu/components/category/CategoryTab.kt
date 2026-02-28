@@ -57,22 +57,18 @@ fun CategoryTab(
     val itemsPerPage = 10
 
     val totalPages = (categoriesWithCount.size + itemsPerPage - 1) / itemsPerPage
-    val startIndex = (currentPage - 1) * itemsPerPage
-    val endIndex = minOf(startIndex + itemsPerPage, categoriesWithCount.size)
-    val currentPageItems = categoriesWithCount.drop(startIndex).take(itemsPerPage)
+    val currentPageItems = categoriesWithCount.drop((currentPage - 1) * itemsPerPage).take(itemsPerPage)
 
     Card(
         modifier = Modifier.fillMaxSize(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface 
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isPhone) 0.dp else 2.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp)
+                .padding(if (isPhone) 12.dp else 24.dp)
         ) {
             // Header
             Row(
@@ -82,19 +78,16 @@ fun CategoryTab(
             ) {
                 Text(
                     text = "Categories (${categoriesWithCount.size})",
-                    fontSize = 18.sp,
+                    fontSize = if (isPhone) 15.sp else 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface 
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-
                 Button(
                     onClick = { categoryViewModel.toggleCreateDialog(true) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add", modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.Add, contentDescription = "Add", modifier = Modifier.size(16.dp))
                     if (!isPhone) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Add Category")
@@ -102,7 +95,7 @@ fun CategoryTab(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(if (isPhone) 12.dp else 16.dp))
 
             if (categoriesWithCount.isEmpty()) {
                 EmptyState(
@@ -111,83 +104,60 @@ fun CategoryTab(
                     subtitle = "Start by adding your first category"
                 )
             } else {
-                // Table Header
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surfaceVariant, 
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                // Table header — hanya tablet
+                if (!isPhone) {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text(
-                            "No",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant, 
-                            modifier = Modifier.width(50.dp)
-                        )
-                        Text(
-                            "Emoji",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.width(80.dp)
-                        )
-                        Text(
-                            "Category Name",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Text(
-                            "Status",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.width(100.dp),
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            "Actions",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.width(120.dp),
-                            textAlign = TextAlign.Center
-                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("No", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.width(50.dp))
+                            Text("Emoji", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.width(80.dp))
+                            Text("Category Name", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.weight(1f))
+                            Text("Status", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.width(100.dp), textAlign = TextAlign.Center)
+                            Text("Actions", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.width(120.dp), textAlign = TextAlign.Center)
+                        }
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
 
                 LazyColumn(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(if (isPhone) 8.dp else 4.dp)
                 ) {
                     items(currentPageItems) { item ->
                         val actualIndex = categoriesWithCount.indexOf(item) + 1
                         CategoryTableRow(
                             item = item,
                             actualIndex = actualIndex,
-                            onEdit = {
-                                categoryViewModel.toggleEditDialog(true, item)
-                            },
+                            onEdit = { categoryViewModel.toggleEditDialog(true, item) },
                             onDelete = {
                                 categoryToDelete = item
                                 showDeleteDialog = true
-                            }
+                            },
+                            isPhone = isPhone
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
                 if (totalPages > 1) {
+                    Spacer(modifier = Modifier.height(16.dp))
                     PaginationBar(
                         currentPage = currentPage,
                         totalPages = totalPages,
@@ -198,7 +168,6 @@ fun CategoryTab(
         }
     }
 
-    // Dialogs (tetap sama)
     if (categoryState.showCreateDialog) {
         AddCategoryDialog(
             categoryState = categoryState,
@@ -226,14 +195,10 @@ fun CategoryTab(
     if (showDeleteDialog && categoryToDelete != null) {
         DeleteCategoryDialog(
             categoryName = categoryToDelete!!.category.name,
-            onDismiss = {
-                showDeleteDialog = false
-                categoryToDelete = null
-            },
+            onDismiss = { showDeleteDialog = false; categoryToDelete = null },
             onConfirm = {
                 categoryViewModel.deleteCategory(categoryToDelete!!.category.id)
-                showDeleteDialog = false
-                categoryToDelete = null
+                showDeleteDialog = false; categoryToDelete = null
             }
         )
     }

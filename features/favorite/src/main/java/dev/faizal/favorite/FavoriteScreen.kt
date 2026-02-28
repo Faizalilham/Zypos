@@ -2,7 +2,6 @@ package dev.faizal.favorite
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,15 +16,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -69,42 +63,14 @@ fun FavoriteProductDetailScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Header - FIXED (tidak ikut scroll)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(
-                    horizontal = if (screenConfig.isPhone) 16.dp else 24.dp,
-                    vertical = 16.dp
-                )
-        ) {
-            if (screenConfig.isPhone) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.Default.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                    Text(
-                        text = "Favorite Products 🏆",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    IconButton(onClick = { showFilterDialog = true }) {
-                        Image(
-                            painter = painterResource(id = R.drawable.filter),
-                            contentDescription = "Filter",
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
-            } else {
+        // Header — hanya di tablet
+        if (!screenConfig.isPhone) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
+            ) {
                 Header(
                     title = "Favorite Products",
                     subtitle = "Detailed view of your best-selling products",
@@ -123,60 +89,58 @@ fun FavoriteProductDetailScreen(
         ) {
             // Action Bar
             item {
-                Surface(
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    shape = RoundedCornerShape(12.dp),
-                    color = MaterialTheme.colorScheme.surface,
+                        .padding(horizontal = 16.dp, vertical = if (screenConfig.isPhone) 8.dp else 0.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    // Month Picker
+                    FilterChip(
+                        selected = false,
+                        onClick = { showMonthYearDialog = true },
+                        label = {
+                            Text(
+                                "${getMonthName(state.selectedMonth)} ${state.selectedYear}",
+                                fontSize = if (screenConfig.isPhone) 12.sp else 13.sp
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(R.drawable.calendar),
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        }
+                    )
 
-                        FilterChip(
-                            selected = false,
-                            onClick = { showMonthYearDialog = true },
-                            label = {
-                                Text(
-                                    "${getMonthName(state.selectedMonth)} ${state.selectedYear}",
-                                    fontSize = 13.sp
-                                )
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.calendar),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        )
+                    // Category Filter
+                    FilterChip(
+                        selected = state.selectedCategory != null,
+                        onClick = { showFilterDialog = true },
+                        label = {
+                            Text(
+                                state.selectedCategory ?: "All Categories",
+                                fontSize = if (screenConfig.isPhone) 12.sp else 13.sp
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(R.drawable.filter),
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = if (state.selectedCategory != null)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
 
-                        FilterChip(
-                            selected = state.selectedCategory != null,
-                            onClick = { showFilterDialog = true },
-                            label = {
-                                Text(
-                                    state.selectedCategory ?: "All Categories",
-                                    fontSize = 13.sp
-                                )
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    painter = painterResource(R.drawable.filter),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        )
-
+                    // Sort — hanya tablet
+                    if (!screenConfig.isPhone) {
                         Spacer(modifier = Modifier.weight(1f))
-
-                        // Sort Options
                         FilterChip(
                             selected = false,
                             onClick = { viewModel.toggleSortOrder() },
@@ -190,14 +154,14 @@ fun FavoriteProductDetailScreen(
                                 Icon(
                                     painter = painterResource(R.drawable.sort),
                                     contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
+                                    modifier = Modifier.size(14.dp)
                                 )
                             }
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(if (screenConfig.isPhone) 4.dp else 16.dp))
             }
 
             // Summary Statistics
@@ -206,8 +170,7 @@ fun FavoriteProductDetailScreen(
                     products = state.filteredProducts,
                     isPhone = screenConfig.isPhone
                 )
-
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(if (screenConfig.isPhone) 8.dp else 16.dp))
             }
 
             // Charts Section
@@ -217,8 +180,7 @@ fun FavoriteProductDetailScreen(
                         products = state.filteredProducts,
                         isPhone = screenConfig.isPhone
                     )
-
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(if (screenConfig.isPhone) 8.dp else 16.dp))
                 }
             }
 
@@ -228,7 +190,7 @@ fun FavoriteProductDetailScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(300.dp),
+                            .height(200.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator()
@@ -243,13 +205,13 @@ fun FavoriteProductDetailScreen(
                     )
                 }
             } else {
-                // Product List
                 items(state.filteredProducts) { product ->
                     DetailedProductCard(
                         product = product,
-                        onClick = { selectedProduct = product }
+                        onClick = { selectedProduct = product },
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
             }
         }
@@ -280,7 +242,6 @@ fun FavoriteProductDetailScreen(
         )
     }
 
-    // Product Detail Bottom Sheet
     if (selectedProduct != null) {
         ProductDetailBottomSheet(
             product = selectedProduct!!,

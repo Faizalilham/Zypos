@@ -2,21 +2,17 @@ package dev.faizal.transaction
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -88,37 +84,14 @@ fun TransactionAllScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // Header
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(
-                    horizontal = if (screenConfig.isPhone) 16.dp else 24.dp,
-                    vertical = 16.dp
-                )
-        ) {
-            if (screenConfig.isPhone) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "All Transactions 💰",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    IconButton(onClick = { showFilterDialog = true }) {
-                        Image(
-                            painter = painterResource(id = R.drawable.filter),
-                            contentDescription = "Filter",
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-
-                }
-            } else {
+        // Header — hanya tampil di tablet
+        if (!screenConfig.isPhone) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(horizontal = 24.dp, vertical = 16.dp)
+            ) {
                 Header(
                     title = "All Transactions",
                     subtitle = "Manage and view all your transactions",
@@ -132,97 +105,86 @@ fun TransactionAllScreen(
         }
 
         // Action Bar
-        Surface(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-            shape = RoundedCornerShape(12.dp),
-            color = MaterialTheme.colorScheme.surface,
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = if (screenConfig.isPhone) 8.dp else 0.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Month Year Picker
-                FilterChip(
-                    selected = false,
-                    onClick = { showMonthYearDialog = true },
-                    label = {
-                        Text(
-                            "${getMonthName(state.selectedMonth)} ${state.selectedYear}",
-                            fontSize = 13.sp
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(R.drawable.calendar),
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                )
+            // Month Year Picker
+            FilterChip(
+                selected = false,
+                onClick = { showMonthYearDialog = true },
+                label = {
+                    Text(
+                        "${getMonthName(state.selectedMonth)} ${state.selectedYear}",
+                        fontSize = if (screenConfig.isPhone) 12.sp else 13.sp
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        painter = painterResource(R.drawable.calendar),
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+            )
 
-                // Filter Button
-                FilterChip(
-                    selected = state.startDate != null || state.endDate != null,
-                    onClick = { showFilterDialog = true },
-                    label = { Text("Filter", fontSize = 13.sp) },
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(R.drawable.filter),
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = if (state.startDate != null || state.endDate != null)
-                                MaterialTheme.colorScheme.primary
-                            else
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                )
+            // Filter Button — selalu tampil
+            FilterChip(
+                selected = state.startDate != null || state.endDate != null,
+                onClick = { showFilterDialog = true },
+                label = {
+                    Text(
+                        "Filter",
+                        fontSize = if (screenConfig.isPhone) 12.sp else 13.sp
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        painter = painterResource(R.drawable.filter),
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = if (state.startDate != null || state.endDate != null)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            )
 
-
-                // Sort Button
+            // Sort & Export hanya di tablet
+            if (!screenConfig.isPhone) {
                 FilterChip(
                     selected = false,
                     onClick = { showSortDialog = true },
-                    label = { Text("Sort", fontSize  = 13.sp) },
+                    label = { Text("Sort", fontSize = 13.sp) },
                     leadingIcon = {
                         Icon(
                             painter = painterResource(R.drawable.sort),
                             contentDescription = null,
-                            modifier = Modifier.size(16.dp)
+                            modifier = Modifier.size(14.dp)
                         )
                     }
                 )
 
-                Spacer(modifier = Modifier.weight(1f))
+                androidx.compose.foundation.layout.Spacer(modifier = Modifier.weight(1f))
 
-                // Export Button
-                if (!screenConfig.isPhone) {
-                    Button(
-                        onClick = { showExportDialog = true },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ),
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.download),
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Export", fontSize = 13.sp)
-                    }
-                } else {
-                    IconButton(onClick = { showExportDialog = true }) {
-                        Icon(
-                            painter = painterResource(R.drawable.download),
-                            contentDescription = "Export",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
+                Button(
+                    onClick = { showExportDialog = true },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.download),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    androidx.compose.foundation.layout.Spacer(modifier = Modifier.size(8.dp))
+                    Text("Export", fontSize = 13.sp)
                 }
             }
         }
@@ -251,23 +213,19 @@ fun TransactionAllScreen(
             )
         } else {
             if (screenConfig.isPhone) {
-                // Phone: Card Layout
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(state.filteredTransactions) { transaction ->
                         TransactionCard(
                             transaction = transaction,
-                            onDateClick = { date ->
-                                viewModel.loadOrdersForDate(date)
-                            }
+                            onDateClick = { date -> viewModel.loadOrdersForDate(date) }
                         )
                     }
                 }
             } else {
-                // Tablet: Table Layout
                 Card(
                     modifier = Modifier
                         .fillMaxSize()
@@ -276,21 +234,12 @@ fun TransactionAllScreen(
                         containerColor = MaterialTheme.colorScheme.surface
                     )
                 ) {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        // Table Header
-                        item {
-                            TransactionTableHeader()
-                        }
-
-                        // Table Rows
+                    LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        item { TransactionTableHeader() }
                         items(state.filteredTransactions) { transaction ->
                             TransactionTableRow(
                                 transaction = transaction,
-                                onDateClick = { date ->
-                                    viewModel.loadOrdersForDate(date)
-                                },
+                                onDateClick = { date -> viewModel.loadOrdersForDate(date) },
                                 onExportPdf = {},
                                 onExportExcel = {}
                             )
@@ -366,16 +315,14 @@ fun TransactionAllScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.8f),
+                    .height(500.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
             ) {
-                Column(
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    // Header dengan gradient
+                Column(modifier = Modifier.fillMaxSize()) {
+                    // Header
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -387,7 +334,7 @@ fun TransactionAllScreen(
                                     )
                                 )
                             )
-                            .padding(20.dp)
+                            .padding(16.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -397,26 +344,18 @@ fun TransactionAllScreen(
                             Column {
                                 Text(
                                     text = "Menu Terjual",
-                                    fontSize = 20.sp,
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Color.White
                                 )
-                                Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = formatDateToIndonesian(state.selectedDate!!),
-                                    fontSize = 14.sp,
+                                    fontSize = 12.sp,
                                     color = Color.White.copy(alpha = 0.9f)
                                 )
                             }
-
-                            IconButton(
-                                onClick = { viewModel.dismissOrderDialog() }
-                            ) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Close",
-                                    tint = Color.White
-                                )
+                            IconButton(onClick = { viewModel.dismissOrderDialog() }) {
+                                Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
                             }
                         }
                     }
@@ -430,27 +369,21 @@ fun TransactionAllScreen(
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(16.dp),
+                                    .padding(12.dp),
                                 horizontalArrangement = Arrangement.SpaceEvenly
                             ) {
                                 StatItem(
-                                    label = "Total Menu",
+                                    label = "Menu",
                                     value = state.selectedDateOrders.size.toString(),
                                     icon = Icons.Default.ShoppingCart
                                 )
-                                VerticalDivider(
-                                    modifier = Modifier.height(40.dp),
-                                    color = MaterialTheme.colorScheme.outlineVariant
-                                )
+                                VerticalDivider(modifier = Modifier.height(36.dp))
                                 StatItem(
-                                    label = "Total Qty",
+                                    label = "Qty",
                                     value = state.selectedDateOrders.sumOf { it.quantity }.toString(),
                                     icon = Icons.Default.ShoppingCart
                                 )
-                                VerticalDivider(
-                                    modifier = Modifier.height(40.dp),
-                                    color = MaterialTheme.colorScheme.outlineVariant
-                                )
+                                VerticalDivider(modifier = Modifier.height(36.dp))
                                 StatItem(
                                     label = "Total",
                                     value = state.selectedDateOrders.sumOf { it.totalPrice }.toCurrencyString(),
@@ -463,32 +396,18 @@ fun TransactionAllScreen(
                     // Content
                     if (state.selectedDateOrders.isEmpty()) {
                         Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(32.dp),
+                            modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                CircularProgressIndicator(
-                                    color = MaterialTheme.colorScheme.primary
-                                )
-                                Text(
-                                    text = "Memuat data...",
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
+                            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                         }
                     } else {
                         LazyColumn(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(horizontal = 16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                            contentPadding = PaddingValues(vertical = 16.dp)
+                                .padding(horizontal = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(vertical = 12.dp)
                         ) {
                             items(state.selectedDateOrders) { order ->
                                 EnhancedOrderMenuItem(order)

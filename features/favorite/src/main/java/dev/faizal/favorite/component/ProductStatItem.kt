@@ -13,17 +13,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun ProductStatItem(label: String, value: String) {
+fun ProductStatItem(
+    label: String,
+    value: String,
+    isPhone: Boolean = false
+) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = label,
-            fontSize = 12.sp,
+            fontSize = if (isPhone) 10.sp else 12.sp,
             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f)
         )
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(2.dp))
         Text(
             text = value,
-            fontSize = 18.sp,
+            fontSize = if (isPhone) 13.sp else 16.sp,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onPrimaryContainer
         )

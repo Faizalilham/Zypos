@@ -58,44 +58,37 @@ fun MenuTab(
     val itemsPerPage = 10
 
     val totalPages = (menus.size + itemsPerPage - 1) / itemsPerPage
-    val startIndex = (currentPage - 1) * itemsPerPage
-    val endIndex = minOf(startIndex + itemsPerPage, menus.size)
-    val currentPageItems = menus.drop(startIndex).take(itemsPerPage)
+    val currentPageItems = menus.drop((currentPage - 1) * itemsPerPage).take(itemsPerPage)
 
     Card(
         modifier = Modifier.fillMaxSize(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface 
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isPhone) 0.dp else 2.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp)
+                .padding(if (isPhone) 12.dp else 24.dp)
         ) {
             // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment   = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
                     text = "Menu Items (${menus.size})",
-                    fontSize = 18.sp,
+                    fontSize = if (isPhone) 15.sp else 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface 
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-
                 Button(
                     onClick = { menuViewModel.toggleCreateDialog(true) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Icon(Icons.Default.Add, contentDescription = "Add", modifier = Modifier.size(18.dp))
+                    Icon(Icons.Default.Add, contentDescription = "Add", modifier = Modifier.size(16.dp))
                     if (!isPhone) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Add Menu")
@@ -103,7 +96,7 @@ fun MenuTab(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(if (isPhone) 12.dp else 16.dp))
 
             if (menus.isEmpty()) {
                 EmptyState(
@@ -112,87 +105,70 @@ fun MenuTab(
                     subtitle = "Start by adding your first menu item"
                 )
             } else {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surfaceVariant, 
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                // Table header — hanya tablet
+                if (!isPhone) {
+                    val isLandscape = true
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        val isLandscape = !isPhone
-
-                        Text("No", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.width(if (isLandscape) 35.dp else 40.dp))
-
-                        Text("Image", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.width(if (isLandscape) 60.dp else 70.dp))
-
-                        Text("Menu Name", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.weight(0.35f))
-
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Text("Category", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.weight(0.2f),
-                            textAlign = TextAlign.Center)
-
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Text("Price", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.weight(0.25f),
-                            textAlign = TextAlign.End)
-
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Text("Status", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.weight(0.15f),
-                            textAlign = TextAlign.Center)
-
-                        Spacer(modifier = Modifier.width(8.dp))
-
-                        Text("Actions", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.width(if (isLandscape) 80.dp else 100.dp),
-                            textAlign = TextAlign.Center)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text("No", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.width(if (isLandscape) 35.dp else 40.dp))
+                            Text("Image", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.width(if (isLandscape) 60.dp else 70.dp))
+                            Text("Menu Name", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.weight(0.35f))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Category", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.weight(0.2f), textAlign = TextAlign.Center)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Price", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.weight(0.25f), textAlign = TextAlign.End)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Status", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.weight(0.15f), textAlign = TextAlign.Center)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Actions", fontSize = 13.sp, fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.width(if (isLandscape) 80.dp else 100.dp),
+                                textAlign = TextAlign.Center)
+                        }
                     }
+                    Spacer(modifier = Modifier.height(8.dp))
                 }
-
-                Spacer(modifier = Modifier.height(8.dp))
 
                 LazyColumn(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(if (isPhone) 8.dp else 4.dp)
                 ) {
                     items(currentPageItems) { item ->
                         val actualIndex = menus.indexOf(item) + 1
                         MenuTableRow(
                             item = item,
                             actualIndex = actualIndex,
-                            onEdit = {
-                                menuViewModel.toggleEditDialog(true, item)
-                            },
-                            onDelete = {
-                                menuToDelete = item
-                                showDeleteDialog = true
-                            },
-                            isLandscape = !isPhone
+                            onEdit = { menuViewModel.toggleEditDialog(true, item) },
+                            onDelete = { menuToDelete = item; showDeleteDialog = true },
+                            isLandscape = !isPhone,
+                            isPhone = isPhone
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
-
                 if (totalPages > 1) {
+                    Spacer(modifier = Modifier.height(16.dp))
                     PaginationBar(
                         currentPage = currentPage,
                         totalPages = totalPages,
@@ -203,7 +179,6 @@ fun MenuTab(
         }
     }
 
-    // Dialogs (tetap sama)
     if (menuState.showCreateDialog) {
         AddMenuDialog(
             menuState = menuState,
@@ -235,14 +210,10 @@ fun MenuTab(
     if (showDeleteDialog && menuToDelete != null) {
         DeleteMenuDialog(
             menuName = menuToDelete!!.name,
-            onDismiss = {
-                showDeleteDialog = false
-                menuToDelete = null
-            },
+            onDismiss = { showDeleteDialog = false; menuToDelete = null },
             onConfirm = {
                 menuViewModel.deleteMenu(menuToDelete!!.id)
-                showDeleteDialog = false
-                menuToDelete = null
+                showDeleteDialog = false; menuToDelete = null
             }
         )
     }

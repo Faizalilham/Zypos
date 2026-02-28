@@ -73,6 +73,7 @@ fun PhoneOrderScreen(
     val categories by viewModel.categories.collectAsState()
     val menus by viewModel.menus.collectAsState()
 
+    // Box fillMaxSize sebagai root agar FAB bisa align BottomEnd dengan benar
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -95,7 +96,7 @@ fun PhoneOrderScreen(
                 text = "Category",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onBackground 
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -112,32 +113,35 @@ fun PhoneOrderScreen(
                 text = "Menu",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onBackground 
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // Beri padding bottom agar list tidak tertutup FAB
             MenuItemsGrid(
                 menus = menus,
                 orderItems = state.orderItems,
                 isTabletPortrait = false,
+                isPhone = true,
                 selectedCategory = state.selectedCategory,
                 searchQuery = state.searchQuery,
                 onAddToCart = viewModel::addToCart,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(bottom = if (state.orderItems.isNotEmpty()) 80.dp else 0.dp)
+                    .padding(bottom = if (state.orderItems.isNotEmpty()) 72.dp else 0.dp)
             )
         }
 
+        // FAB — selalu di dalam Box root fillMaxSize, bukan di dalam Column
         if (state.orderItems.isNotEmpty()) {
             ExtendedFloatingActionButton(
                 onClick = { viewModel.toggleOrderPanel(true) },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(16.dp),
-                containerColor = MaterialTheme.colorScheme.primary, 
-                contentColor = MaterialTheme.colorScheme.onPrimary 
+                    .padding(end = 16.dp, bottom = 16.dp),
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Icon(Icons.Default.ShoppingCart, contentDescription = "Cart")
                 Spacer(modifier = Modifier.width(8.dp))
@@ -145,16 +149,14 @@ fun PhoneOrderScreen(
             }
         }
 
-
+        // Bottom Sheet order detail
         if (state.showOrderPanel) {
-            val sheetState = rememberModalBottomSheetState(
-                skipPartiallyExpanded = true
-            )
+            val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
             ModalBottomSheet(
                 onDismissRequest = { viewModel.toggleOrderPanel(false) },
                 sheetState = sheetState,
-                containerColor = MaterialTheme.colorScheme.surface, 
-                contentColor = MaterialTheme.colorScheme.onSurface, 
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.fillMaxHeight(0.85f)
             ) {
                 OrderDetailsPanelContent(
@@ -209,7 +211,7 @@ fun TabletOrderScreen(
                 text = "Category",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onBackground 
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -222,7 +224,6 @@ fun TabletOrderScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -232,9 +233,8 @@ fun TabletOrderScreen(
                     text = "Menu",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground 
+                    color = MaterialTheme.colorScheme.onBackground
                 )
-
                 if (screenConfig.isTabletPortrait && state.orderItems.isNotEmpty()) {
                     OrderFloatingButton(
                         orderCount = state.orderItems.size,
@@ -271,16 +271,13 @@ fun TabletOrderScreen(
         }
     }
 
-
     if (screenConfig.isTabletPortrait && state.showOrderPanel) {
-        val sheetState = rememberModalBottomSheetState(
-            skipPartiallyExpanded = true
-        )
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
         ModalBottomSheet(
             onDismissRequest = { viewModel.toggleOrderPanel(false) },
             sheetState = sheetState,
-            containerColor = MaterialTheme.colorScheme.surface, 
-            contentColor = MaterialTheme.colorScheme.onSurface, 
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.fillMaxHeight(0.85f)
         ) {
             OrderDetailsPanelContent(
@@ -298,6 +295,3 @@ fun TabletOrderScreen(
         }
     }
 }
-
-
-

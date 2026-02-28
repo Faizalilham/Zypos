@@ -31,16 +31,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import dev.faizal.core.common.utils.toDecimalString
 import dev.faizal.core.designsystem.R
 import dev.faizal.core.domain.model.order.Order
 import dev.faizal.core.domain.model.order.Size
 import dev.faizal.core.domain.model.order.Temperature
-
 
 @Composable
 fun OrderItemRow(
@@ -56,28 +60,39 @@ fun OrderItemRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Product Image
+        // Product Image — pakai imageUri, fallback ke icon
         Box(
             modifier = Modifier
                 .size(64.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .clip(RoundedCornerShape(10.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                Icons.Default.ShoppingCart,
-                contentDescription = null,
-                modifier = Modifier.size(32.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            if (!orderItem.menu.imageUri.isNullOrEmpty()) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(orderItem.menu.imageUri)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = orderItem.menu.name,
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(RoundedCornerShape(10.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Icon(
+                    Icons.Default.ShoppingCart,
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // Product Info
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
+        Column(modifier = Modifier.weight(1f)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -86,10 +101,9 @@ fun OrderItemRow(
                 Text(
                     orderItem.menu.name,
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
                 )
-
-                // Edit Button
                 Surface(
                     shape = CircleShape,
                     color = Color(0xFFE3F2FD),
@@ -99,60 +113,40 @@ fun OrderItemRow(
                         onClick = { showEditDialog = true },
                         modifier = Modifier.size(28.dp)
                     ) {
-                        Icon(
-                            Icons.Default.Edit,
-                            contentDescription = "Edit",
-                            modifier = Modifier.size(16.dp),
-                            tint = Color(0xFF2196F3)
-                        )
+                        Icon(Icons.Default.Edit, contentDescription = "Edit",
+                            modifier = Modifier.size(14.dp), tint = Color(0xFF2196F3))
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Size & Temperature Tags
+            // Size & Temp tags
             Row(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Size Tag
-                Surface(
-                    shape = RoundedCornerShape(4.dp),
-                    color = Color(0xFFFFF3E0)
-                ) {
+                Surface(shape = RoundedCornerShape(4.dp), color = Color(0xFFFFF3E0)) {
                     Text(
                         when (orderItem.size) {
-                            Size.SMALL -> "S"
-                            Size.MEDIUM -> "M"
-                            Size.LARGE -> "L"
+                            Size.SMALL -> "S"; Size.MEDIUM -> "M"; Size.LARGE -> "L"
                         },
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = Color(0xFFFF9800),
+                        fontSize = 10.sp, fontWeight = FontWeight.Medium, color = Color(0xFFFF9800),
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                     )
                 }
-
-                // Temperature Tag
                 Surface(
                     shape = RoundedCornerShape(4.dp),
-                    color = if (orderItem.temperature == Temperature.HOT)
-                        Color(0xFFFFEBEE)
-                    else
-                        Color(0xFFE3F2FD)
+                    color = if (orderItem.temperature == Temperature.HOT) Color(0xFFFFEBEE)
+                    else Color(0xFFE3F2FD)
                 ) {
                     Text(
                         when (orderItem.temperature) {
-                            Temperature.HOT -> "🔥 Hot"
-                            Temperature.COLD -> "❄️ Cold"
+                            Temperature.HOT -> "🔥 Hot"; Temperature.COLD -> "❄️ Cold"
                         },
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = if (orderItem.temperature == Temperature.HOT)
-                            Color(0xFFD32F2F)
-                        else
-                            Color(0xFF1976D2),
+                        fontSize = 10.sp, fontWeight = FontWeight.Medium,
+                        color = if (orderItem.temperature == Temperature.HOT) Color(0xFFD32F2F)
+                        else Color(0xFF1976D2),
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                     )
                 }
@@ -160,7 +154,7 @@ fun OrderItemRow(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Quantity Selector
+            // Quantity selector
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -171,50 +165,32 @@ fun OrderItemRow(
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .padding(horizontal = 4.dp, vertical = 4.dp)
             ) {
-                Surface(
-                    shape = CircleShape,
-                    color = Color.White
-                ) {
+                Surface(shape = CircleShape, color = Color.White) {
                     IconButton(
                         onClick = { onQuantityChange(orderItem.quantity - 1) },
                         modifier = Modifier.size(24.dp)
                     ) {
-                        Text(
-                            "−",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        Text("−", fontSize = 14.sp, fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
-
-                Text(
-                    orderItem.quantity.toString(),
+                Text(orderItem.quantity.toString(),
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                Surface(
-                    shape = CircleShape,
-                    color = Color.White
-                ) {
+                    color = MaterialTheme.colorScheme.onSurface)
+                Surface(shape = CircleShape, color = Color.White) {
                     IconButton(
                         onClick = { onQuantityChange(orderItem.quantity + 1) },
                         modifier = Modifier.size(24.dp)
                     ) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = "Increase",
+                        Icon(Icons.Default.Add, contentDescription = "Increase",
                             modifier = Modifier.size(12.dp),
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
+                            tint = MaterialTheme.colorScheme.onSurface)
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Price
             Text(
                 "Rp${orderItem.totalPrice.toDecimalString()}",
                 style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
@@ -224,27 +200,20 @@ fun OrderItemRow(
 
         Spacer(modifier = Modifier.width(12.dp))
 
-        // Delete Button
+        // Delete button
         Surface(
             shape = RoundedCornerShape(8.dp),
             color = Color(0xFFFEE2E2),
             modifier = Modifier.size(32.dp)
         ) {
-            IconButton(
-                onClick = onRemove,
-                modifier = Modifier.size(32.dp)
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.delete),
+            IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
+                Icon(painter = painterResource(R.drawable.delete),
                     contentDescription = "Remove",
-                    modifier = Modifier.size(18.dp),
-                    tint = Color(0xFFEF4444)
-                )
+                    modifier = Modifier.size(18.dp), tint = Color(0xFFEF4444))
             }
         }
     }
 
-    // Edit Dialog
     if (showEditDialog) {
         AddOrderDialog(
             menu = orderItem.menu,
@@ -253,33 +222,17 @@ fun OrderItemRow(
             initialTemperature = orderItem.temperature,
             onDismiss = { showEditDialog = false },
             onConfirm = { quantity, size, temperature ->
-                onEdit(
-                    orderItem.copy(
-                        quantity = quantity,
-                        size = size,
-                        temperature = temperature,
-                        totalPrice = calculateTotalPrice(
-                            orderItem.menu.basePrice,
-                            size,
-                            quantity
-                        )
-                    )
-                )
+                onEdit(orderItem.copy(
+                    quantity = quantity, size = size, temperature = temperature,
+                    totalPrice = calculateTotalPrice(orderItem.menu.basePrice, size, quantity)
+                ))
                 showEditDialog = false
             }
         )
     }
 }
 
-private fun calculateTotalPrice(
-    basePrice: Double,
-    size: Size,
-    quantity: Int
-): Double {
-    val sizeMultiplier = when (size) {
-        Size.SMALL -> 0.8
-        Size.MEDIUM -> 1.0
-        Size.LARGE -> 1.3
-    }
+private fun calculateTotalPrice(basePrice: Double, size: Size, quantity: Int): Double {
+    val sizeMultiplier = when (size) { Size.SMALL -> 0.8; Size.MEDIUM -> 1.0; Size.LARGE -> 1.3 }
     return (basePrice * sizeMultiplier) * quantity
 }
