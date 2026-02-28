@@ -1,6 +1,7 @@
 package dev.faizal.transaction
 
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -42,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -78,6 +80,8 @@ fun TransactionAllScreen(
     var showFilterDialog by remember { mutableStateOf(false) }
     var showSortDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
 
     Column(
         modifier = Modifier
@@ -296,18 +300,39 @@ fun TransactionAllScreen(
         )
     }
 
+    // Di TransactionAllScreen
     if (showExportDialog) {
         ExportDialog(
             onDismiss = { showExportDialog = false },
             onExportExcel = {
                 viewModel.exportToExcel()
-                showExportDialog = false
             },
-            onExportPdf = {
-                viewModel.exportToPdf()
-                showExportDialog = false
+            onDownloadPdf = {
+                viewModel.exportToPdf(
+                    onSuccess = {
+                        Toast.makeText(context, "PDF downloaded successfully", Toast.LENGTH_SHORT).show()
+                    },
+                    onError = { error ->
+                        Toast.makeText(context, "Failed to download PDF: $error", Toast.LENGTH_SHORT).show()
+                    }
+                )
+            },
+            onSharePdf = {
+                viewModel.exportAndSharePdf(
+                    onError = { error ->
+                        Toast.makeText(context, "Failed to share PDF: $error", Toast.LENGTH_SHORT).show()
+                    }
+                )
             }
         )
+    }
+    if (state.isExporting) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator()
+        }
     }
 
     if (state.showOrderDialog && state.selectedDate != null) {

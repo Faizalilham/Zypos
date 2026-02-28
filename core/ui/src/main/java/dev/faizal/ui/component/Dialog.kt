@@ -2,6 +2,7 @@ package dev.faizal.ui.component
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,16 +15,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -34,10 +32,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.faizal.core.common.model.SortBy
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import dev.faizal.core.designsystem.R
+
 
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -193,38 +199,69 @@ fun SortDialog(
         }
     )
 }
-
 @Composable
 fun ExportDialog(
     onDismiss: () -> Unit,
     onExportExcel: () -> Unit,
-    onExportPdf: () -> Unit
+    onDownloadPdf: () -> Unit = {},
+    onSharePdf: () -> Unit = {},
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon = { Icon(Icons.Default.MoreVert, contentDescription = null) },
-        title = { Text("Export Transactions") },
+        icon = {
+            Image(painter = painterResource(R.drawable.download), contentDescription = null, modifier = Modifier.size(24.dp))
+        },
+        title = {
+            Text("Export Report")
+        },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text("Choose export format:")
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    "Choose export format and action",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
 
-                OutlinedButton(
-                    onClick = onExportExcel,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Default.MoreVert, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Export as Excel (.xlsx)")
-                }
+                // Excel Option
+                ExportOptionCard(
+                    title = "Excel Spreadsheet",
+                    description = "Export data as .xlsx file",
+                    icon = R.drawable.excel,
+                    onClick = {
+                        onExportExcel()
+                        onDismiss()
+                    }
+                )
 
-                OutlinedButton(
-                    onClick = onExportPdf,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Default.MoreVert, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Export as PDF")
-                }
+                // PDF Options
+                Text(
+                    "PDF Options",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+
+                ExportOptionCard(
+                    title = "Download PDF",
+                    description = "Save to Downloads folder",
+                    icon = R.drawable.pdf,
+                    onClick = {
+                        onDownloadPdf()
+                        onDismiss()
+                    }
+                )
+
+                ExportOptionCard(
+                    title = "Share PDF",
+                    description = "Share via apps",
+                    icon = R.drawable.share,
+                    onClick = {
+                        onSharePdf()
+                        onDismiss()
+                    }
+                )
             }
         },
         confirmButton = {},
@@ -234,6 +271,51 @@ fun ExportDialog(
             }
         }
     )
+}
+
+@Composable
+private fun ExportOptionCard(
+    title: String,
+    description: String,
+    icon: Int,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Image(
+                painter  = painterResource(icon),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Icon(
+                Icons.Default.ArrowForward,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
 }
 
 @Composable
