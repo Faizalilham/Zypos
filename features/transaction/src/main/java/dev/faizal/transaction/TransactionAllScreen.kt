@@ -50,7 +50,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
+import dev.faizal.core.common.pdf.PermissionHelper
 import dev.faizal.core.common.utils.ScreenConfig
+import dev.faizal.core.common.utils.findActivity
 import dev.faizal.core.common.utils.formatDateToIndonesian
 import dev.faizal.core.common.utils.getMonthName
 import dev.faizal.core.common.utils.toCurrencyString
@@ -81,6 +83,7 @@ fun TransactionAllScreen(
     var showSortDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val activity = context.findActivity()
 
 
     Column(
@@ -308,14 +311,26 @@ fun TransactionAllScreen(
                 viewModel.exportToExcel()
             },
             onDownloadPdf = {
-                viewModel.exportToPdf(
-                    onSuccess = {
-                        Toast.makeText(context, "PDF downloaded successfully", Toast.LENGTH_SHORT).show()
-                    },
-                    onError = { error ->
-                        Toast.makeText(context, "Failed to download PDF: $error", Toast.LENGTH_SHORT).show()
+                if (activity != null) {
+                    val permissionHelper = PermissionHelper(activity)
+
+                    // ✅ DIPANGGIL DI SINI - Cek permission
+                    if (permissionHelper.hasStoragePermission()) {
+                        // Permission granted, langsung export
+                        viewModel.exportToPdf(
+                            onSuccess = {
+                                Toast.makeText(context, "PDF downloaded successfully", Toast.LENGTH_SHORT).show()
+                            },
+                            onError = { error ->
+                                Toast.makeText(context, "Failed to download PDF: $error", Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    } else {
+                        // ✅ DIPANGGIL DI SINI - Request permission
+                        permissionHelper.requestStoragePermission()
                     }
-                )
+                }
+
             },
             onSharePdf = {
                 viewModel.exportAndSharePdf(

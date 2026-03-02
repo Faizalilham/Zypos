@@ -1,5 +1,8 @@
 package dev.faizal.core.common.utils
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import java.text.NumberFormat
 import java.util.Locale
 
@@ -23,10 +26,6 @@ fun Double.toRupiahFormatDecimal(decimals: Int = 0): String {
     return "Rp ${"%.${decimals}f".format(Locale.ROOT, this)}"
 }
 
-fun Double.toRupiahString(): String {
-    val formatter = NumberFormat.getCurrencyInstance(Locale("id", "ID"))
-    return formatter.format(this)
-}
 
 fun Double.toCurrencyString(prefix: String = "Rp "): String {
     val formatter = NumberFormat.getNumberInstance(Locale("id", "ID"))
@@ -35,6 +34,11 @@ fun Double.toCurrencyString(prefix: String = "Rp "): String {
     return "$prefix${formatter.format(this)}"
 }
 
-// For Int/Long
-fun Int.toRupiahString(): String = this.toDouble().toRupiahString()
-fun Long.toRupiahString(): String = this.toDouble().toRupiahString()
+fun Context.findActivity(): Activity? {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) return context
+        context = context.baseContext
+    }
+    return null
+}
