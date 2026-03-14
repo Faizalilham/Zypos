@@ -1,7 +1,11 @@
 package dev.faizal.dashboard
 
 
+import android.content.ContentValues
 import android.content.Context
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -66,18 +70,64 @@ class ReportViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val fileName = "Sales_Report_${state.year}_${String.format("%02d", state.month)}.pdf"
-                val outputFile = File(context.getExternalFilesDir(null), fileName)
 
-                val result = orderRepository.generateMonthlyReportPdf(
-                    year = state.year,
-                    month = state.month,
-                    outputFile = outputFile
-                )
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    // API 29+ - Pakai MediaStore, no permission needed
+                    val contentValues = ContentValues().apply {
+                        put(MediaStore.Downloads.DISPLAY_NAME, fileName)
+                        put(MediaStore.Downloads.MIME_TYPE, "application/pdf")
+                        put(MediaStore.Downloads.IS_PENDING, 1)
+                    }
 
-                result.fold(
-                    onSuccess = { file -> onSuccess(file) },
-                    onFailure = { exception -> onError(exception.message ?: "Failed to generate PDF") }
-                )
+                    val resolver = context.contentResolver
+                    val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+
+                    uri?.let {
+                        resolver.openOutputStream(it)?.use { outputStream ->
+                            // Generate PDF langsung ke outputStream
+                            val tempFile = File(context.cacheDir, fileName)
+
+                            val result = orderRepository.generateMonthlyReportPdf(
+                                year = state.year,
+                                month = state.month,
+                                outputFile = tempFile
+                            )
+
+                            result.fold(
+                                onSuccess = { file ->
+                                    outputStream.write(file.readBytes())
+                                    contentValues.clear()
+                                    contentValues.put(MediaStore.Downloads.IS_PENDING, 0)
+                                    resolver.update(uri, contentValues, null, null)
+                                    onSuccess(file)
+                                },
+                                onFailure = { exception ->
+                                    resolver.delete(uri, null, null)
+                                    onError(exception.message ?: "Failed to generate PDF")
+                                }
+                            )
+                        }
+                    } ?: onError("Failed to create file")
+
+                } else {
+                    // API 28 ke bawah - Fallback ke Downloads folder
+                    val outputFile = File(
+                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                        fileName
+                    )
+
+                    val result = orderRepository.generateMonthlyReportPdf(
+                        year = state.year,
+                        month = state.month,
+                        outputFile = outputFile
+                    )
+
+                    result.fold(
+                        onSuccess = { file -> onSuccess(file) },
+                        onFailure = { exception -> onError(exception.message ?: "Failed to generate PDF") }
+                    )
+                }
+
             } catch (e: Exception) {
                 onError(e.message ?: "Failed to generate PDF")
             }

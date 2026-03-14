@@ -1,5 +1,7 @@
 package dev.faizal.core.data.repository
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import dev.faizal.core.common.pdf.PdfReportGenerator
 import dev.faizal.core.data.datasource.dao.OrderDao
 import dev.faizal.core.data.datasource.entity.OrderEntity
@@ -194,6 +196,7 @@ class OrderRepositoryImpl @Inject constructor(
 
     // ==================== PDF Report ====================
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun generateMonthlyReportPdf(
         year: Int,
         month: Int,

@@ -3,6 +3,7 @@ package dev.faizal.dashboard
 import android.content.res.Configuration
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -27,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -67,6 +69,7 @@ fun ReportScreen(
     val reportViewModel: ReportViewModel = hiltViewModel()
     val reportState = reportViewModel.state
     val report = reportState.report
+    val context = LocalContext.current
 
     var selectedMonth by remember { mutableIntStateOf(reportState.month) }
     var selectedYear by remember { mutableIntStateOf(reportState.year) }
@@ -154,7 +157,17 @@ fun ReportScreen(
                         selectedMonth = month
                         selectedYear = year
                     },
-                    onDownloadClick = {}
+                    onDownloadClick = {
+                        reportViewModel.downloadPdfReport(
+                            context = context,
+                            onSuccess = {
+                                Toast.makeText(context, "Success Generate PDF with name : ${it.name}", Toast.LENGTH_SHORT).show()
+                            },
+                            onError = {
+                                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    }
                 )
             }
 

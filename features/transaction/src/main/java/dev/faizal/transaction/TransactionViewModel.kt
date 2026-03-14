@@ -34,7 +34,7 @@ class TransactionViewModel @Inject constructor(
     var state by mutableStateOf(TransactionState())
         private set
 
-    private val pdfGenerator = PdfReportGenerator()
+    private val pdfGenerator = PdfReportGenerator(context)
     private val downloadHelper = PdfDownloadHelper(context)
 
     init {

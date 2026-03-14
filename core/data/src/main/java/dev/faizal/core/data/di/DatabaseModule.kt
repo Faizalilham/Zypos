@@ -76,7 +76,7 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun providePdfReportGenerator(): PdfReportGenerator {
-        return PdfReportGenerator()
+    fun providePdfReportGenerator(@ApplicationContext context: Context): PdfReportGenerator {
+        return PdfReportGenerator(context)
     }
 }
