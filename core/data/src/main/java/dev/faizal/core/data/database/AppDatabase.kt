@@ -1,6 +1,7 @@
 package dev.faizal.core.data.database
 
 import android.content.Context
+import androidx.annotation.VisibleForTesting
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -12,9 +13,13 @@ import dev.faizal.core.data.datasource.dao.OrderDao
 import dev.faizal.core.data.datasource.entity.CategoryEntity
 import dev.faizal.core.data.datasource.entity.MenuEntity
 import dev.faizal.core.data.datasource.entity.OrderEntity
+import dev.faizal.core.data.security.KeystoreHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import net.zetetic.database.sqlcipher.SQLiteDatabase
+import java.io.File
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory as SupportFactory
 
 @Database(
     entities = [CategoryEntity::class, MenuEntity::class, OrderEntity::class],
@@ -36,11 +41,15 @@ abstract class AppDatabase : RoomDatabase() {
 
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
+                val passphrase = KeystoreHelper.getDatabasePassphrase(context)
+                val factory = SupportFactory(passphrase)
+                passphrase.fill(0)
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
                     "zypos_database"
                 )
+                    .openHelperFactory(factory)
                     .addMigrations(MIGRATION_1_2)
                     .addMigrations(MIGRATION_2_3)
                     .addCallback(DatabaseCallback())
@@ -66,14 +75,12 @@ abstract class AppDatabase : RoomDatabase() {
 
         val MIGRATION_2_3 = object : Migration(2, 3) {
             override fun migrate(database: SupportSQLiteDatabase) {
-                // Add imageUri and imageResourceId columns to orders table
                 database.execSQL(
                     "ALTER TABLE orders ADD COLUMN imageUri TEXT"
                 )
             }
         }
 
-        // Add default categories when database is created
         private suspend fun populateInitialData(categoryDao: CategoryDao) {
             val defaultCategories = listOf(
                 CategoryEntity(
@@ -99,6 +106,42 @@ abstract class AppDatabase : RoomDatabase() {
             defaultCategories.forEach { category ->
                 categoryDao.insertCategory(category)
             }
+        }
+
+        private fun migrateToEncryptedIfNeeded(context: Context) {
+            val dbFile = context.getDatabasePath("zypos_database")
+            if (!dbFile.exists()) return
+
+            val header = dbFile.inputStream().use { stream ->
+                ByteArray(16).also { stream.read(it) }
+            }
+            val isPlaintext = String(header) == "SQLite format 3\u0000"
+            if (!isPlaintext) return
+
+            val passphrase = KeystoreHelper.getDatabasePassphrase(context)
+            val passphraseHex = passphrase.joinToString("") { "%02x".format(it) }
+            passphrase.fill(0)
+
+            val tempFile = File(dbFile.parent, "zypos_database_temp")
+
+            SQLiteDatabase.openDatabase(
+                dbFile.absolutePath,
+                null,
+                SQLiteDatabase.OPEN_READWRITE
+            ).use { plainDb ->
+                plainDb.rawExecSQL("ATTACH DATABASE '${tempFile.absolutePath}' AS encrypted KEY \"x'$passphraseHex'\"")
+                plainDb.rawExecSQL("SELECT sqlcipher_export('encrypted')")
+                plainDb.rawExecSQL("DETACH DATABASE encrypted")
+            }
+
+            dbFile.delete()
+            tempFile.renameTo(dbFile)
+        }
+
+        @VisibleForTesting
+        fun resetInstance() {
+            INSTANCE?.close()
+            INSTANCE = null
         }
     }
 }

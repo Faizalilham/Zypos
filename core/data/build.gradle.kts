@@ -6,6 +6,10 @@ plugins {
 
 android {
     namespace = "dev.faizal.core.data"
+
+    defaultConfig {
+        testInstrumentationRunner =  "androidx.test.runner.AndroidJUnitRunner"
+    }
 }
 
 dependencies {
@@ -14,10 +18,15 @@ dependencies {
 
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.core.ktx)
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.androidx.hilt.navigation.compose)
     implementation(libs.kotlinx.coroutines.android)
+
+    api(libs.sqlcipher.android)
+    api(libs.androidx.sqlite.ktx)
+    api(libs.androidx.security.crypto)
     
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
