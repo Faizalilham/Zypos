@@ -35,7 +35,7 @@ fun MenuCategories(
     val allCategories = listOf(
         Category(
             id = 0,
-            name = "All Menu",
+            name = "All",
             emoji = "🍽️",
             displayOrder = 0,
             isActive = true

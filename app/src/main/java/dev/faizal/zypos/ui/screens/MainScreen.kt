@@ -45,6 +45,7 @@ import dev.faizal.core.designsystem.R
 import dev.faizal.dashboard.ReportScreen
 import dev.faizal.favorite.FavoriteProductDetailScreen
 import dev.faizal.features.menu.MenuManagementScreen
+import dev.faizal.features.settlement.SettlementScreen
 import dev.faizal.order.OrderScreen
 import dev.faizal.order.OrderViewModel
 import dev.faizal.transaction.TransactionAllScreen
@@ -117,7 +118,8 @@ fun PhoneLayout(
         BottomNavItem(R.drawable.dashboard_outlined, "Dashboard", MainRoute.Overview),
         BottomNavItem(R.drawable.order_list_outlined, "Order", MainRoute.Order),
         BottomNavItem(R.drawable.ic_transaction, "Transaction", MainRoute.TransactionAll),
-        BottomNavItem(R.drawable.menu_outlined, "Menu", MainRoute.Menu)
+        BottomNavItem(R.drawable.menu_outlined, "Menu", MainRoute.Menu),
+        BottomNavItem(R.drawable.settlement, "Settlement", MainRoute.Settlement),
     )
 
     Scaffold(
@@ -271,6 +273,7 @@ fun PhoneLayout(
                     screenConfig = screenConfig,
                     initialTab = if (selectedScreen is MainRoute.TransactionSales) 1 else 0
                 )
+                is MainRoute.Settlement -> SettlementScreen()
             }
         }
     }
@@ -356,6 +359,7 @@ fun TabletLayout(
                     screenConfig = screenConfig,
                     onToggleSidebar = onToggleSidebar
                 )
+                is MainRoute.Settlement -> SettlementScreen()
             }
         }
     }

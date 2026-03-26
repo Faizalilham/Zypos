@@ -31,7 +31,7 @@ fun ProductSummaryStats(
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.primaryContainer
+        color = MaterialTheme.colorScheme.surface
     ) {
         // Selalu Row — HP maupun tablet
         Row(

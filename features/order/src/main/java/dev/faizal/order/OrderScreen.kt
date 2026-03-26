@@ -12,13 +12,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -30,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import dev.faizal.core.common.utils.ScreenConfig
+import dev.faizal.core.designsystem.PrimaryBlue
 import dev.faizal.order.components.MenuCategories
 import dev.faizal.order.components.MenuItemsGrid
 import dev.faizal.order.components.OrderDetailsPanel
@@ -73,22 +78,58 @@ fun PhoneOrderScreen(
     val categories by viewModel.categories.collectAsState()
     val menus by viewModel.menus.collectAsState()
 
-    // Box fillMaxSize sebagai root agar FAB bisa align BottomEnd dengan benar
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(PrimaryBlue.copy(alpha = 0.05f))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Text(
-                text = "Order List 🚀",
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            // ✅ Header + Search Bar sejajar
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Order List 🚀",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                OutlinedTextField(
+                    value = state.searchQuery,
+                    onValueChange = viewModel::onSearchQueryChange,
+                    placeholder = {
+                        Text(
+                            text = "Search...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    modifier = Modifier
+                        .width(200.dp)
+                        .height(52.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    )
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -110,7 +151,7 @@ fun PhoneOrderScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Menu",
+                text = "Spesial Menu for you",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onBackground
@@ -118,7 +159,6 @@ fun PhoneOrderScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Beri padding bottom agar list tidak tertutup FAB
             MenuItemsGrid(
                 menus = menus,
                 orderItems = state.orderItems,
@@ -133,7 +173,7 @@ fun PhoneOrderScreen(
             )
         }
 
-        // FAB — selalu di dalam Box root fillMaxSize, bukan di dalam Column
+        // FAB
         if (state.orderItems.isNotEmpty()) {
             ExtendedFloatingActionButton(
                 onClick = { viewModel.toggleOrderPanel(true) },
@@ -191,7 +231,7 @@ fun TabletOrderScreen(
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(PrimaryBlue.copy(alpha = 0.05f))
     ) {
         Column(
             modifier = Modifier
@@ -200,10 +240,48 @@ fun TabletOrderScreen(
                 .padding(24.dp)
                 .padding(bottom = 48.dp)
         ) {
-            OrderHeader(
-                onMenuClick = onToggleSidebar,
-                isTabletPortrait = screenConfig.isTabletPortrait
-            )
+            // ✅ Header + Search Bar sejajar
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OrderHeader(
+                    onMenuClick = onToggleSidebar,
+                    isTabletPortrait = screenConfig.isTabletPortrait,
+                    modifier = Modifier.weight(1f)
+                )
+
+                OutlinedTextField(
+                    value = state.searchQuery,
+                    onValueChange = viewModel::onSearchQueryChange, // ✅ OrderViewModel, bukan MenuViewModel
+                    placeholder = {
+                        Text(
+                            text = "Search menu...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    modifier = Modifier
+                        .width(280.dp)
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    )
+                )
+            }
 
             Spacer(modifier = Modifier.height(32.dp))
 
@@ -230,7 +308,7 @@ fun TabletOrderScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Menu",
+                    text = "Spesial Menu for you",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onBackground

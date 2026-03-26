@@ -15,7 +15,10 @@ import dev.faizal.core.designsystem.BackgroundLight
 import dev.faizal.core.designsystem.BackgroundWhite
 import dev.faizal.core.designsystem.BorderLight
 import dev.faizal.core.designsystem.BrownPrimary
+import dev.faizal.core.designsystem.CardBlueDark
+import dev.faizal.core.designsystem.CardBlueLight
 import dev.faizal.core.designsystem.PrimaryBlue
+import dev.faizal.core.designsystem.PrimaryBlueDark
 import dev.faizal.core.designsystem.StatusError
 import dev.faizal.core.designsystem.SurfaceGray
 import dev.faizal.core.designsystem.SurfaceWhite
@@ -27,6 +30,8 @@ import dev.faizal.core.designsystem.Typography
 private val LightColorScheme = lightColorScheme(
     primary = PrimaryBlue,
     onPrimary = BackgroundWhite,
+    primaryContainer = CardBlueLight,
+    onPrimaryContainer = PrimaryBlueDark,
     secondary = BrownPrimary,
     onSecondary = BackgroundWhite,
     tertiary = AccentGreen,
@@ -46,6 +51,8 @@ private val LightColorScheme = lightColorScheme(
 private val DarkColorScheme = darkColorScheme(
     primary = PrimaryBlue,
     onPrimary = BackgroundWhite,
+    primaryContainer = CardBlueDark,
+    onPrimaryContainer = CardBlueLight,
     secondary = BrownPrimary,
     onSecondary = BackgroundWhite,
     tertiary = AccentGreen,

@@ -2,6 +2,7 @@ package dev.faizal.favorite
 
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -34,6 +36,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import dev.faizal.core.common.utils.ScreenConfig
 import dev.faizal.core.common.utils.getMonthName
+import dev.faizal.core.designsystem.PrimaryBlue
 import dev.faizal.core.designsystem.R
 import dev.faizal.core.domain.model.report.TopProductReport
 import dev.faizal.favorite.component.DetailedProductCard
@@ -61,14 +64,13 @@ fun FavoriteProductDetailScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(PrimaryBlue.copy(alpha = 0.05f))
     ) {
         // Header — hanya di tablet
         if (!screenConfig.isPhone) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.background)
                     .padding(horizontal = 24.dp, vertical = 16.dp)
             ) {
                 Header(
@@ -98,12 +100,15 @@ fun FavoriteProductDetailScreen(
                 ) {
                     // Month Picker
                     FilterChip(
+                        border = BorderStroke(1.dp, PrimaryBlue),
+                        shape = RoundedCornerShape(24.dp),
                         selected = false,
                         onClick = { showMonthYearDialog = true },
                         label = {
                             Text(
                                 "${getMonthName(state.selectedMonth)} ${state.selectedYear}",
-                                fontSize = if (screenConfig.isPhone) 12.sp else 13.sp
+                                fontSize = if (screenConfig.isPhone) 12.sp else 13.sp,
+                                color = PrimaryBlue
                             )
                         },
                         leadingIcon = {
@@ -117,12 +122,15 @@ fun FavoriteProductDetailScreen(
 
                     // Category Filter
                     FilterChip(
+                        border = BorderStroke(1.dp, PrimaryBlue),
+                        shape = RoundedCornerShape(24.dp),
                         selected = state.selectedCategory != null,
                         onClick = { showFilterDialog = true },
                         label = {
                             Text(
                                 state.selectedCategory ?: "All Categories",
-                                fontSize = if (screenConfig.isPhone) 12.sp else 13.sp
+                                fontSize = if (screenConfig.isPhone) 12.sp else 13.sp,
+                                color = PrimaryBlue
                             )
                         },
                         leadingIcon = {
@@ -142,12 +150,15 @@ fun FavoriteProductDetailScreen(
                     if (!screenConfig.isPhone) {
                         Spacer(modifier = Modifier.weight(1f))
                         FilterChip(
+                            border = BorderStroke(1.dp, PrimaryBlue),
+                            shape = RoundedCornerShape(24.dp),
                             selected = false,
                             onClick = { viewModel.toggleSortOrder() },
                             label = {
                                 Text(
                                     if (state.sortBy == SortBy.ORDERS) "Orders" else "Revenue",
-                                    fontSize = 13.sp
+                                    fontSize = 13.sp,
+                                    color = PrimaryBlue
                                 )
                             },
                             leadingIcon = {

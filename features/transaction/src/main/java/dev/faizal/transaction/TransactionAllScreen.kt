@@ -3,12 +3,14 @@ package dev.faizal.transaction
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,6 +33,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -56,6 +59,7 @@ import dev.faizal.core.common.utils.findActivity
 import dev.faizal.core.common.utils.formatDateToIndonesian
 import dev.faizal.core.common.utils.getMonthName
 import dev.faizal.core.common.utils.toCurrencyString
+import dev.faizal.core.designsystem.PrimaryBlue
 import dev.faizal.core.designsystem.R
 import dev.faizal.transaction.component.EnhancedOrderMenuItem
 import dev.faizal.transaction.component.StatItem
@@ -89,14 +93,13 @@ fun TransactionAllScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(PrimaryBlue.copy(alpha = 0.05f))
     ) {
         // Header — hanya tampil di tablet
         if (!screenConfig.isPhone) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.background)
                     .padding(horizontal = 24.dp, vertical = 16.dp)
             ) {
                 Header(
@@ -121,12 +124,15 @@ fun TransactionAllScreen(
         ) {
             // Month Year Picker
             FilterChip(
+                border = BorderStroke(1.dp, PrimaryBlue),
+                shape = RoundedCornerShape(24.dp),
                 selected = false,
                 onClick = { showMonthYearDialog = true },
                 label = {
                     Text(
                         "${getMonthName(state.selectedMonth)} ${state.selectedYear}",
-                        fontSize = if (screenConfig.isPhone) 12.sp else 13.sp
+                        fontSize = if (screenConfig.isPhone) 12.sp else 13.sp,
+                        color = PrimaryBlue
                     )
                 },
                 leadingIcon = {
@@ -140,12 +146,15 @@ fun TransactionAllScreen(
 
             // Filter Button — selalu tampil
             FilterChip(
+                border = BorderStroke(1.dp, PrimaryBlue),
+                shape = RoundedCornerShape(24.dp),
                 selected = state.startDate != null || state.endDate != null,
                 onClick = { showFilterDialog = true },
                 label = {
                     Text(
                         "Filter",
-                        fontSize = if (screenConfig.isPhone) 12.sp else 13.sp
+                        fontSize = if (screenConfig.isPhone) 12.sp else 13.sp,
+                        color = PrimaryBlue
                     )
                 },
                 leadingIcon = {
@@ -153,10 +162,6 @@ fun TransactionAllScreen(
                         painter = painterResource(R.drawable.filter),
                         contentDescription = null,
                         modifier = Modifier.size(14.dp),
-                        tint = if (state.startDate != null || state.endDate != null)
-                            MaterialTheme.colorScheme.primary
-                        else
-                            MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             )
@@ -164,9 +169,11 @@ fun TransactionAllScreen(
             // Sort & Export hanya di tablet
             if (!screenConfig.isPhone) {
                 FilterChip(
+                    border = BorderStroke(1.dp, PrimaryBlue),
+                    shape = RoundedCornerShape(24.dp),
                     selected = false,
                     onClick = { showSortDialog = true },
-                    label = { Text("Sort", fontSize = 13.sp) },
+                    label = { Text("Sort", fontSize = 13.sp, color = PrimaryBlue) },
                     leadingIcon = {
                         Icon(
                             painter = painterResource(R.drawable.sort),
@@ -176,12 +183,14 @@ fun TransactionAllScreen(
                     }
                 )
 
-                androidx.compose.foundation.layout.Spacer(modifier = Modifier.weight(1f))
+                Spacer(modifier = Modifier.weight(1f))
 
-                Button(
+                OutlinedButton(
                     onClick = { showExportDialog = true },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
+                    shape = RoundedCornerShape(50.dp),
+                    border = BorderStroke(1.dp, PrimaryBlue),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = PrimaryBlue
                     ),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
@@ -190,7 +199,7 @@ fun TransactionAllScreen(
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )
-                    androidx.compose.foundation.layout.Spacer(modifier = Modifier.size(8.dp))
+                    Spacer(modifier = Modifier.size(8.dp))
                     Text("Export", fontSize = 13.sp)
                 }
             }
@@ -314,9 +323,7 @@ fun TransactionAllScreen(
                 if (activity != null) {
                     val permissionHelper = PermissionHelper(activity)
 
-                    // ✅ DIPANGGIL DI SINI - Cek permission
                     if (permissionHelper.hasStoragePermission()) {
-                        // Permission granted, langsung export
                         viewModel.exportToPdf(
                             onSuccess = {
                                 Toast.makeText(context, "PDF downloaded successfully", Toast.LENGTH_SHORT).show()
@@ -326,7 +333,6 @@ fun TransactionAllScreen(
                             }
                         )
                     } else {
-                        // ✅ DIPANGGIL DI SINI - Request permission
                         permissionHelper.requestStoragePermission()
                     }
                 }

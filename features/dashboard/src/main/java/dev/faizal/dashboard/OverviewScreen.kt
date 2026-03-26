@@ -41,6 +41,7 @@ import dev.faizal.core.designsystem.CardGreenDark
 import dev.faizal.core.designsystem.CardGreenLight
 import dev.faizal.core.designsystem.CardYellowDark
 import dev.faizal.core.designsystem.CardYellowLight
+import dev.faizal.core.designsystem.PrimaryBlue
 import dev.faizal.core.designsystem.R
 import dev.faizal.dashboard.component.AllOrdersCard
 import dev.faizal.dashboard.component.DatePeriodCard
@@ -100,13 +101,12 @@ fun ReportScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(PrimaryBlue.copy(alpha = 0.05f))
     ) {
         // Header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
                 .padding(
                     horizontal = if (screenConfig.isPhone) 16.dp else 24.dp,
                     vertical = 16.dp

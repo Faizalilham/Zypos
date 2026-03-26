@@ -18,4 +18,7 @@ sealed class MainRoute {
 
     @Serializable
     data object Menu : MainRoute()
+
+    @Serializable
+    data object Settlement : MainRoute()
 }

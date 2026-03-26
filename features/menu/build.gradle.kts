@@ -8,7 +8,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":features:order"))
+
 
     // Unit Testing
     testImplementation(libs.junit)

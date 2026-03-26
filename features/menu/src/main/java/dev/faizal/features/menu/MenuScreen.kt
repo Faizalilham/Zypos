@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.faizal.core.common.utils.ScreenConfig
+import dev.faizal.core.designsystem.PrimaryBlue
 import dev.faizal.features.menu.components.category.CategoryTab
 import dev.faizal.features.menu.components.menu.MenuTab
 import dev.faizal.ui.component.Header
@@ -52,12 +53,11 @@ fun MenuManagementScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(PrimaryBlue.copy(alpha = 0.05f))
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
                 .padding(
                     horizontal = if (screenConfig.isPhone) 16.dp else 24.dp,
                     vertical = 16.dp
@@ -89,7 +89,7 @@ fun MenuManagementScreen(
                 modifier = Modifier.width(if (screenConfig.isPhone) 200.dp else 300.dp),
                 shape = RoundedCornerShape(12.dp),
                 color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 2.dp
+                tonalElevation = 0.dp
             ) {
                 Row(
                     modifier = Modifier
@@ -109,7 +109,7 @@ fun MenuManagementScreen(
                                     if (isSelected)
                                         MaterialTheme.colorScheme.primary
                                     else
-                                        Color.Transparent
+                                        Color.White
                                 )
                                 .clickable { selectedTab = index },
                             contentAlignment = Alignment.Center

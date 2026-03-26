@@ -67,6 +67,7 @@ dependencies {
     implementation(project(":features:menu"))
     implementation(project(":features:order"))
     implementation(project(":features:transaction"))
+    implementation(project(":features:settlement"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

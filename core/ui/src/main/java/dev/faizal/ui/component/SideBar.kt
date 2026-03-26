@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -34,6 +36,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,7 +56,7 @@ fun Sidebar(
     var isTransactionExpanded by remember { mutableStateOf(false) }
 
     val sidebarWidth by animateDpAsState(
-        targetValue = if (isCompact) 72.dp else 240.dp,
+        targetValue = if (isCompact) 72.dp else 200.dp,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessMedium
@@ -63,8 +68,7 @@ fun Sidebar(
         modifier = Modifier
             .width(sidebarWidth)
             .fillMaxHeight()
-            .background(MaterialTheme.colorScheme.surface)
-            .padding(if (isCompact) 8.dp else 16.dp),
+            .background(MaterialTheme.colorScheme.surface),
         horizontalAlignment = if (isCompact) Alignment.CenterHorizontally else Alignment.Start
     ) {
         Spacer(modifier = Modifier.height(8.dp))
@@ -78,25 +82,25 @@ fun Sidebar(
                     .background(MaterialTheme.colorScheme.primary),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.dashboard_filled),
+                Image(
+                    painter = painterResource(R.drawable.logo_zypos),
                     contentDescription = "Logo",
                     modifier = Modifier.size(28.dp),
-                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         } else {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 16.dp, horizontal = 16.dp)
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.dashboard_filled),
+                Image(
+                    painter = painterResource(R.drawable.logo_zypos),
                     contentDescription = "Logo",
                     modifier = Modifier.size(32.dp),
-                    tint = MaterialTheme.colorScheme.primary
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "Zypos",
                     style = MaterialTheme.typography.titleLarge,
@@ -118,11 +122,19 @@ fun Sidebar(
 
         // Order List
         SidebarMenuItem(
-            title = "Order List",
+            title = "Take Order",
             icon = R.drawable.order_list_outlined,
             isSelected = currentRoute is MainRoute.Order,
             isCompact = isCompact,
             onClick = { onNavigate(MainRoute.Order) }
+        )
+
+        SidebarMenuItem(
+            title = "Menu Catalog",
+            icon = R.drawable.menu_outlined,
+            isSelected = currentRoute is MainRoute.Menu,
+            isCompact = isCompact,
+            onClick = { onNavigate(MainRoute.Menu) }
         )
 
         // Transaction dengan Submenu
@@ -156,11 +168,11 @@ fun Sidebar(
 
         // Menu
         SidebarMenuItem(
-            title = "Menu",
-            icon = R.drawable.menu_outlined,
-            isSelected = currentRoute is MainRoute.Menu,
+            title = "Settlement",
+            icon = R.drawable.settlement,
+            isSelected = currentRoute is MainRoute.Settlement,
             isCompact = isCompact,
-            onClick = { onNavigate(MainRoute.Menu) }
+            onClick = { onNavigate(MainRoute.Settlement) }
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -170,7 +182,7 @@ fun Sidebar(
         if (isCompact) {
             IconButton(
                 onClick = { onDarkModeChange(!isDarkMode) },
-                modifier = Modifier.size(36.dp)
+                modifier = Modifier.size(36.dp).padding( 8.dp),
             ) {
                 Image(
                     painter = painterResource(
@@ -183,7 +195,7 @@ fun Sidebar(
         } else {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 8.dp)
+                modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp)
             ) {
                 Text(
                     "Dark Mode",
@@ -321,8 +333,6 @@ fun SidebarMenuItem(
         Box(
             modifier = Modifier
                 .size(48.dp)
-                .padding(vertical = 4.dp)
-                .clip(RoundedCornerShape(12.dp))
                 .background(if (isSelected) Color(0xFFE3F2FD) else Color.Transparent)
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
@@ -335,29 +345,45 @@ fun SidebarMenuItem(
             )
         }
     } else {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 4.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .height(IntrinsicSize.Min)
                 .background(if (isSelected) Color(0xFFE3F2FD) else Color.Transparent)
                 .clickable(onClick = onClick)
-                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            Icon(
-                painter = painterResource(icon),
-                contentDescription = title,
-                modifier = Modifier.size(20.dp),
-                tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
-            )
+            // Konten utama dengan padding
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                Icon(
+                    painter = painterResource(icon),
+                    contentDescription = title,
+                    modifier = Modifier.size(20.dp),
+                    tint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                )
+            }
+
+            // Garis menempel di pojok kanan
+            if (isSelected) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .width(4.dp)
+                        .fillMaxHeight()
+                        .background(Color(0xFF1565C0))
+                )
+            }
         }
     }
 }

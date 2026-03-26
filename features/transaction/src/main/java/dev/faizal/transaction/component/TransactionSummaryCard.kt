@@ -26,22 +26,40 @@ fun TransactionSummaryCard(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(
+                horizontal = if (isPhone) 16.dp else 16.dp,
+                vertical = if (isPhone) 8.dp else 8.dp
+            ),
         shape = RoundedCornerShape(12.dp),
-        color = MaterialTheme.colorScheme.primaryContainer
+        color = MaterialTheme.colorScheme.surface
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 12.dp, horizontal = 8.dp),
+                .padding(
+                    vertical = if (isPhone) 12.dp else 16.dp,
+                    horizontal = 8.dp
+                ),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            SummaryItem("Total Days", totalTransactions.toString())
+            SummaryItem(
+                label = "Total Days",
+                value = totalTransactions.toString(),
+                isPhone = isPhone
+            )
             VerticalDivider(modifier = Modifier.height(36.dp))
-            SummaryItem("Revenue", totalAmount.toCurrencyString())
+            SummaryItem(
+                label = "Revenue",
+                value = totalAmount.toCurrencyString(),
+                isPhone = isPhone
+            )
             VerticalDivider(modifier = Modifier.height(36.dp))
-            SummaryItem("Orders", totalOrders.toString())
+            SummaryItem(
+                label = "Orders",
+                value = totalOrders.toString(),
+                isPhone = isPhone
+            )
         }
     }
 }

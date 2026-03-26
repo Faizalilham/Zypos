@@ -22,10 +22,11 @@ import androidx.compose.ui.unit.sp
 fun OrderHeader(
     onMenuClick: () -> Unit,
     isTabletPortrait: Boolean,
-    totalOrdersToday: Int = 0
+    totalOrdersToday: Int = 0,
+    modifier: Modifier,
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         if (!isTabletPortrait) {

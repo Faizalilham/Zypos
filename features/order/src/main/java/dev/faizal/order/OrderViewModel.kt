@@ -85,6 +85,10 @@ class OrderViewModel @Inject constructor(
         }
     }
 
+    fun onSearchQueryChange(query: String) {
+        state = state.copy(searchQuery = query)
+    }
+
     private fun <T> snapshotFlow(block: (OrderState) -> T) =
         flow {
             var lastValue = block(state)
