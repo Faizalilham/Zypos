@@ -258,7 +258,7 @@ jobs:
     # → Aktifkan "Required reviewers" → Tambahkan reviewer
     environment:
       name: production
-      url: https://play.google.com/store/apps/details?id=${{ secrets.PACKAGE_NAME }}
+      url: https://play.google.com/store/apps/details?id=dev.faizal.zypos
 
     steps:
       - name: Checkout code
