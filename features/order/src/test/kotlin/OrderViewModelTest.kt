@@ -122,7 +122,8 @@ class OrderViewModelTest {
         // Then
         assertThat(viewModel.state.orderItems).isEmpty()
         assertThat(viewModel.state.isDineIn).isTrue()
-        assertThat(viewModel.state.selectedPaymentMethod).isEqualTo("Credit Card")
+        assertThat(viewModel.state.selectedPaymentMethod).isEqualTo("Cash")
+        assertThat(viewModel.state.selectedTable).isEqualTo(null)
     }
 
     @Test
@@ -538,7 +539,7 @@ class OrderViewModelTest {
 
         val orderNumber = "ORD-20240101-001"
         coEvery {
-            orderRepository.createOrder(any(), any(), any(), any())
+            orderRepository.createOrder(any(), any(), any(), any(),any())
         } returns Result.success(orderNumber)
 
         var successOrderNumber = ""
@@ -560,7 +561,8 @@ class OrderViewModelTest {
                 orders = any(),
                 customerName = "Dine In",
                 orderStatus = OrderStatus.COMPLETED,
-                paymentStatus = PaymentStatus.PAID
+                paymentStatus = PaymentStatus.PAID,
+                tableNumber = any()
             )
         }
     }
@@ -572,7 +574,7 @@ class OrderViewModelTest {
 
         val errorMsg = "Database error"
         coEvery {
-            orderRepository.createOrder(any(), any(), any(), any())
+            orderRepository.createOrder(any(), any(), any(), any(),any())
         } returns Result.failure(Exception(errorMsg))
 
         var receivedError = ""
@@ -596,7 +598,7 @@ class OrderViewModelTest {
         viewModel.addToCart(testMenu)
 
         coEvery {
-            orderRepository.createOrder(any(), any(), any(), any())
+            orderRepository.createOrder(any(), any(), any(), any(),any())
         } returns Result.success("ORD-001")
 
         // When
@@ -609,7 +611,8 @@ class OrderViewModelTest {
                 orders = any(),
                 customerName = "Dine In",
                 orderStatus = any(),
-                paymentStatus = any()
+                paymentStatus = any(),
+                tableNumber = any()
             )
         }
     }
@@ -621,7 +624,7 @@ class OrderViewModelTest {
         viewModel.addToCart(testMenu)
 
         coEvery {
-            orderRepository.createOrder(any(), any(), any(), any())
+            orderRepository.createOrder(any(), any(), any(), any(),any())
         } returns Result.success("ORD-001")
 
         // When
@@ -634,7 +637,8 @@ class OrderViewModelTest {
                 orders = any(),
                 customerName = "Take Away",
                 orderStatus = any(),
-                paymentStatus = any()
+                paymentStatus = any(),
+                tableNumber = any()
             )
         }
     }
