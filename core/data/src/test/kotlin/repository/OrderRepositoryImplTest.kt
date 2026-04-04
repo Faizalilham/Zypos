@@ -121,7 +121,8 @@ class OrderRepositoryImplTest {
             orders = orders,
             customerName = "Dine In",
             orderStatus = OrderStatus.COMPLETED,
-            paymentStatus = PaymentStatus.PAID
+            paymentStatus = PaymentStatus.PAID,
+            tableNumber = "1"
         )
 
         // Then
@@ -143,7 +144,8 @@ class OrderRepositoryImplTest {
             orders = orders,
             customerName = "Dine In",
             orderStatus = OrderStatus.COMPLETED,
-            paymentStatus = PaymentStatus.PAID
+            paymentStatus = PaymentStatus.PAID,
+            tableNumber = "1"
         )
 
         // Then
@@ -164,7 +166,8 @@ class OrderRepositoryImplTest {
             orders = orders,
             customerName = "Dine In",
             orderStatus = OrderStatus.COMPLETED,
-            paymentStatus = PaymentStatus.PAID
+            paymentStatus = PaymentStatus.PAID,
+            tableNumber = "1"
         )
 
         // Then
@@ -187,7 +190,7 @@ class OrderRepositoryImplTest {
         coEvery { orderDao.insertOrders(capture(capturedEntities)) } returns listOf(1L, 2L, 3L)
 
         // When
-        repository.createOrder(orders, "Test", OrderStatus.COMPLETED, PaymentStatus.PAID)
+        repository.createOrder(orders, "Test", "1",OrderStatus.COMPLETED, PaymentStatus.PAID,)
 
         // Then
         val entities = capturedEntities.captured
