@@ -1,6 +1,7 @@
 package dev.faizal.order
 
 
+import dev.faizal.core.domain.model.menu.Menu
 import dev.faizal.core.domain.model.order.Order
 
 data class OrderState(
@@ -11,5 +12,7 @@ data class OrderState(
     val showOrderPanel: Boolean = false,
     val isDarkMode: Boolean = false,
     val totalOrdersToday: Int = 0,
-    val selectedPaymentMethod: String = "Credit Card"
+    val selectedTable: String? = null,
+    val selectedPaymentMethod: String = "Cash",
+    val pendingMenu: Menu? = null
 )

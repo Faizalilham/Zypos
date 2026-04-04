@@ -2,19 +2,18 @@ package dev.faizal.core.domain.model.order
 
 import dev.faizal.core.domain.model.menu.Menu
 
-
 // Untuk cart/checkout (belum disimpan ke DB)
 data class Order(
     val name: String,
     val menu: Menu,
     val quantity: Int,
-    val imageUri : String,
+    val imageUri: String,
     val totalPrice: Double,
     val orderType: OrderType,
-    val temperature: Temperature,
-    val size: Size
+    val temperature: Temperature? = null,
+    val tableNumber: String? = null,
+    val size: Size? = null
 )
-
 
 // Untuk order yang sudah tersimpan di DB
 data class OrderDetail(
@@ -24,8 +23,8 @@ data class OrderDetail(
     val menuName: String,
     val categoryName: String,
     val quantity: Int,
-    val size: Size,
-    val temperature: Temperature,
+    val size: Size?,
+    val temperature: Temperature?,
     val orderType: OrderType,
     val basePrice: Double,
     val itemPrice: Double,
@@ -33,14 +32,7 @@ data class OrderDetail(
     val customerName: String,
     val orderDate: Long,
     val imageUri: String? = null,
+    val tableNumber: String? = null,
     val orderStatus: OrderStatus,
     val paymentStatus: PaymentStatus
 )
-
-
-
-
-
-
-
-

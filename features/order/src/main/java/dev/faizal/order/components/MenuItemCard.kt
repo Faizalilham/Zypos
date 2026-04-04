@@ -8,11 +8,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -23,9 +26,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -40,35 +45,29 @@ fun MenuItemCard(
     item: Menu,
     isSelected: Boolean,
     modifier: Modifier = Modifier,
-    onAddToCart: () -> Unit = {},
-    isPhone: Boolean = false
+    onAddToCart: () -> Unit = {}
 ) {
-    val imageSize = if (isPhone) 52.dp else 64.dp
-    val titleFontSize = if (isPhone) 13.sp else 15.sp
-    val priceFontSize = if (isPhone) 13.sp else 17.sp
-    val cardPadding = if (isPhone) 10.dp else 12.dp
+    val addButtonColor = Color(0xFF4CAF50)
 
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer
-            else MaterialTheme.colorScheme.surface
+            containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(
-            width = if (isSelected) 2.dp else 1.dp,
-            color = if (isSelected) MaterialTheme.colorScheme.primary
-            else MaterialTheme.colorScheme.outlineVariant
-        )
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+        border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary) else null
     ) {
-        Column(modifier = Modifier.padding(0.dp)) {
-            // Image
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Box(
                 modifier = Modifier
-                    .padding(cardPadding)
-                    .size(imageSize)
-                    .clip(RoundedCornerShape(8.dp))
+                    .size(72.dp)
+                    .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
             ) {
@@ -77,92 +76,60 @@ fun MenuItemCard(
                         .data(item.imageUri)
                         .crossfade(true)
                         .build(),
-                    contentDescription = "Menu Image",
+                    contentDescription = item.name,
                     modifier = Modifier
-                        .size(imageSize)
-                        .clip(RoundedCornerShape(8.dp)),
+                        .fillMaxSize()
+                        .clip(CircleShape),
                     contentScale = ContentScale.Crop
                 )
             }
 
-            Column(modifier = Modifier.padding(cardPadding)) {
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = item.name,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 11.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                lineHeight = 14.sp
+            )
+
+            Spacer(modifier = Modifier.height(3.dp))
+
+            Text(
+                text = item.basePrice.toCurrencyString(),
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp
+                ),
+                color = MaterialTheme.colorScheme.onSurface,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = onAddToCart,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = addButtonColor,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(6.dp),
+                contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(26.dp)
+            ) {
                 Text(
-                    text = item.name,
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = titleFontSize
-                    ),
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    text = if (isSelected) "✓ ADD" else "+ ADD",
+                    fontSize = 10.sp,
+                    fontWeight = FontWeight.Bold
                 )
-
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = "${item.sold} Sold",
-                    style = MaterialTheme.typography.labelSmall.copy(fontSize = 10.sp),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(if (isPhone) 8.dp else 12.dp))
-
-                if (isPhone) {
-                    // Phone: harga dan tombol vertikal agar tidak sumpek
-                    Text(
-                        text = item.basePrice.toCurrencyString(),
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            fontSize = priceFontSize
-                        ),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    OutlinedButton(
-                        onClick = onAddToCart,
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            contentColor = MaterialTheme.colorScheme.primary
-                        ),
-                        shape = RoundedCornerShape(6.dp),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(30.dp)
-                    ) {
-                        Text("+ Add", fontSize = 11.sp, fontWeight = FontWeight.Medium)
-                    }
-                } else {
-                    // Tablet: harga dan tombol horizontal
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = item.basePrice.toCurrencyString(),
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = priceFontSize
-                            ),
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        OutlinedButton(
-                            onClick = onAddToCart,
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                containerColor = MaterialTheme.colorScheme.surface,
-                                contentColor = MaterialTheme.colorScheme.onSurface
-                            ),
-                            shape = RoundedCornerShape(6.dp),
-                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
-                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 4.dp),
-                            modifier = Modifier.height(30.dp)
-                        ) {
-                            Text("Add Menu", fontSize = 11.sp, fontWeight = FontWeight.Medium)
-                        }
-                    }
-                }
             }
         }
     }

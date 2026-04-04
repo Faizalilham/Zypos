@@ -1,5 +1,7 @@
 package dev.faizal.order.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
@@ -23,13 +25,14 @@ fun OrderDetailsPanel(
     selectedPaymentMethod: String,
     onPaymentMethodChange: (String) -> Unit,
     onMakeOrder: () -> Unit,
+    selectedTable: String?,
+    onTableSelected: (String?) -> Unit,
 ) {
-    Card(
+    Box(
         modifier = Modifier
-            .width(380.dp)
-            .fillMaxHeight(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            .width(360.dp)
+            .fillMaxHeight()
+            .background(MaterialTheme.colorScheme.surface),
     ) {
 
         OrderDetailsPanelContent(
@@ -42,7 +45,9 @@ fun OrderDetailsPanel(
             onEditItem = onEditItem,
             selectedPaymentMethod = selectedPaymentMethod,
             onPaymentMethodChange = onPaymentMethodChange,
-            onMakeOrder = onMakeOrder
+            onMakeOrder = onMakeOrder,
+            selectedTable = selectedTable,       // ✅ Dari OrderState
+            onTableSelected = onTableSelected, // ✅ Dari OrderViewModel
         )
     }
 }

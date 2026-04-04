@@ -8,6 +8,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import dev.faizal.core.data.datasource.entity.CategoryEntity
+import dev.faizal.core.data.datasource.entity.CategoryWithMenuCount
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -58,7 +59,3 @@ interface CategoryDao {
     fun getCategoriesWithMenuCount(): Flow<List<CategoryWithMenuCount>>
 }
 
-data class CategoryWithMenuCount(
-    @Embedded val category: CategoryEntity,
-    val menuCount: Int
-)

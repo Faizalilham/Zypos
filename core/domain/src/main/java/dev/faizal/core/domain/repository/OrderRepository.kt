@@ -18,6 +18,7 @@ interface OrderRepository {
     suspend fun createOrder(
         orders: List<Order>,
         customerName: String,
+        tableNumber: String?,
         orderStatus: OrderStatus = OrderStatus.COMPLETED,
         paymentStatus: PaymentStatus = PaymentStatus.PAID
     ): Result<String>

@@ -3,6 +3,8 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [ "main", "develop" ]
+    tags:
+      - 'v*' # Trigger deploy hanya saat push tag seperti v1.0.0
   pull_request:
     branches: [ "main", "develop" ]
   workflow_dispatch:
@@ -80,20 +82,23 @@ jobs:
 
   # ==================== INSTRUMENTATION TESTS ====================
   instrumentation-test:
-    needs: [ unit-test ]
+    name: Instrumentation Tests
+    needs: [unit-test]
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the code
-        uses: actions/checkout@v2
+    timeout-minutes: 30
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
         with:
           distribution: ${{ env.JAVA_DISTRIBUTION }}
           java-version: ${{ env.JAVA_VERSION }}
           cache: gradle
 
-      - name: Grant execute permission for gradlew
+      - name: Grant execute permission
         run: chmod +x gradlew
 
       - name: Build app
@@ -127,7 +132,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones disabled for SonarQube
+          fetch-depth: 0
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -140,60 +145,41 @@ jobs:
         run: chmod +x gradlew
 
       - name: Cache SonarQube packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
+      - name: Run Tests for Coverage
+        run: ./gradlew testDebugUnitTest jacocoAllModulesReport jacocoAllModulesVerification
+
       - name: Upload Lint Report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: lint-report
+          name: sonar-lint-report
           path: |
             **/build/reports/lint-results-debug.xml
             **/build/reports/lint-results-*Debug.xml
           retention-days: 7
 
-      # Di job sonarqube - tambahkan download sebelum scan
-      - name: Download Lint Reports
-        uses: actions/download-artifact@v4
-        with:
-          name: lint-report
-
-      # Run tests for coverage
-      - name: Run Tests for Coverage
-        run: ./gradlew testDebugUnitTest jacocoAllModulesReport jacocoAllModulesVerification
-
-      - name: Check Coverage Files
-        run: find . -name "*.xml" -path "*/jacoco/*" | head -20
-
-      - name: Debug Coverage Paths
-        run: |
-          echo "=== JaCoCo XML Files ==="
-          find . -name "jacocoDebugTestReport.xml"
-
-          echo "=== Check XML Content ==="
-          find . -name "jacocoDebugTestReport.xml" -exec sh -c 'echo "--- $1 ---"; head -5 "$1"' _ {} \;
-
-      # SonarQube Scan
       - name: SonarQube Scan
         run: ./gradlew sonarqube -Dsonar.token=${{ secrets.SONAR_TOKEN }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-  # ==================== BUILD APK ====================
+  # ==================== BUILD AAB (bukan APK) ====================
   build:
-    name: Build APK
-    needs: [ unit-test, instrumentation-test ]
+    name: Build AAB
+    needs: [unit-test, instrumentation-test]
     runs-on: ubuntu-latest
     timeout-minutes: 20
 
     strategy:
       matrix:
-        flavor: [ development, staging, production ]
+        flavor: [development, staging, production]
 
     steps:
       - name: Checkout code
@@ -212,23 +198,67 @@ jobs:
       - name: Prepare flavor name
         run: echo "FLAVOR_CAP=$(echo ${{ matrix.flavor }} | sed 's/.*/\u&/')" >> $GITHUB_ENV
 
-      - name: Build Release APK
-        run: ./gradlew assemble${{ env.FLAVOR_CAP }}Release --stacktrace
+      # ---------- Build APK untuk development & staging ----------
+      - name: Build Debug APK (non-production)
+        if: matrix.flavor != 'production'
+        run: ./gradlew assemble${{ env.FLAVOR_CAP }}Debug --stacktrace
 
-      - name: Upload APK
+      - name: Upload Debug APK
+        if: matrix.flavor != 'production'
         uses: actions/upload-artifact@v4
         with:
-          name: zypos-${{ matrix.flavor }}-release.apk
-          path: app/build/outputs/apk/${{ matrix.flavor }}/release/*.apk
+          name: zypos-${{ matrix.flavor }}-debug.apk
+          path: app/build/outputs/apk/${{ matrix.flavor }}/debug/*.apk
           retention-days: 14
 
+      # ---------- Build AAB untuk production ----------
+      - name: Create Keystore
+        if: matrix.flavor == 'production'
+        uses: timheuer/base64-to-file@v1
+        id: keystore
+        with:
+          fileName: "release.keystore"
+          encodedString: ${{ secrets.KEYSTORE_FILE }}
+
+      - name: Build Release AAB (production)
+        if: matrix.flavor == 'production'
+        run: ./gradlew bundle${{ env.FLAVOR_CAP }}Release --stacktrace
+        env:
+          KEYSTORE_FILE: ${{ steps.keystore.outputs.filePath }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Upload Release AAB
+        if: matrix.flavor == 'production'
+        uses: actions/upload-artifact@v4
+        with:
+          name: zypos-production-release.aab
+          path: app/build/outputs/bundle/productionRelease/*.aab
+          retention-days: 30
+
   # ==================== DEPLOY TO PLAY STORE ====================
+  # Deploy HANYA jalan saat push tag (v*), bukan push biasa ke main.
+  # Ditambah environment approval sebagai safety net.
+  #
+  # Flow aman:
+  #   1. Push/merge ke main   → lint, test, build jalan (deploy TIDAK jalan)
+  #   2. Yakin mau deploy?    → git tag v1.0.0 && git push origin v1.0.0
+  #   3. Tag trigger workflow  → test jalan lagi → deploy MENUNGGU approval
+  #   4. Klik "Approve" di GitHub Actions → baru deploy ke Play Store
   deploy:
     name: Deploy to Play Store
     needs: [build, sonarqube]
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: startsWith(github.ref, 'refs/tags/v')
     timeout-minutes: 20
+
+    # --- SAFETY NET: Manual Approval ---
+    # Setup di GitHub: Settings → Environments → "production"
+    # → Aktifkan "Required reviewers" → Tambahkan reviewer
+    environment:
+      name: production
+      url: https://play.google.com/store/apps/details?id=${{ secrets.PACKAGE_NAME }}
 
     steps:
       - name: Checkout code
@@ -250,6 +280,22 @@ jobs:
       - name: Grant execute permission
         run: chmod +x gradlew
 
+      # Download AAB dari job build (tidak perlu build ulang)
+      - name: Download Production AAB
+        uses: actions/download-artifact@v4
+        with:
+          name: zypos-production-release.aab
+          path: app/build/outputs/bundle/productionRelease/
+
+      - name: Verify AAB exists
+        run: |
+          echo "=== AAB Files ==="
+          find . -name "*.aab" -type f
+          if [ -z "$(find . -name '*.aab' -type f)" ]; then
+            echo "ERROR: No AAB file found!"
+            exit 1
+          fi
+
       # Create Service Account Key file
       - name: Create Service Account Key
         uses: timheuer/base64-to-file@v1
@@ -258,23 +304,11 @@ jobs:
           fileName: "service-account.json"
           encodedString: ${{ secrets.GPLAY_SERVICE_ACCOUNT_KEY }}
 
-      # Create Keystore file
-      - name: Create Keystore
-        uses: timheuer/base64-to-file@v1
-        id: keystore
-        with:
-          fileName: "release.keystore"
-          encodedString: ${{ secrets.KEYSTORE_FILE }}
-
       # Deploy with Fastlane
       - name: Deploy to Play Store
         run: bundle exec fastlane android deploy
         env:
           PACKAGE_NAME: ${{ secrets.PACKAGE_NAME }}
-          KEYSTORE_FILE: ${{ steps.keystore.outputs.filePath }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           GPLAY_SERVICE_ACCOUNT_KEY: ${{ steps.service_account_json.outputs.filePath }}
 
       - name: Upload Release Artifacts
@@ -282,7 +316,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: release-artifacts
-          path: |
-            app/build/outputs/apk/release/
-            app/build/outputs/bundle/release/
+          path: app/build/outputs/bundle/productionRelease/*.aab
           retention-days: 30

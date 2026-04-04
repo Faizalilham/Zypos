@@ -35,12 +35,21 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import dev.faizal.core.common.utils.ScreenConfig
 import dev.faizal.core.designsystem.PrimaryBlue
+import dev.faizal.core.domain.model.menu.Menu
+import dev.faizal.core.domain.model.order.Size
+import dev.faizal.core.domain.model.order.Temperature
+import dev.faizal.order.components.AddOrderDialog
 import dev.faizal.order.components.MenuCategories
 import dev.faizal.order.components.MenuItemsGrid
 import dev.faizal.order.components.OrderDetailsPanel
 import dev.faizal.order.components.OrderDetailsPanelContent
 import dev.faizal.order.components.OrderFloatingButton
 import dev.faizal.order.components.OrderHeader
+
+// Kategori yang langsung addToCart tanpa dialog (no size/temperature)
+private val SNACK_CATEGORIES = setOf("Snack", "snack")
+
+private fun Menu.isSnack(): Boolean = categoryName in SNACK_CATEGORIES
 
 @Composable
 fun OrderScreen(
@@ -52,11 +61,7 @@ fun OrderScreen(
     val state = viewModel.state
 
     if (screenConfig.isPhone) {
-        PhoneOrderScreen(
-            viewModel = viewModel,
-            state = state,
-            onNavigateToRoom = onNavigateToRoom
-        )
+        PhoneOrderScreen(viewModel = viewModel, state = state, onNavigateToRoom = onNavigateToRoom)
     } else {
         TabletOrderScreen(
             viewModel = viewModel,
@@ -65,6 +70,41 @@ fun OrderScreen(
             onToggleSidebar = onToggleSidebar,
             onNavigateToRoom = onNavigateToRoom
         )
+    }
+
+    // AddOrderDialog — hanya muncul jika pendingMenu bukan snack
+    state.pendingMenu?.let { menu ->
+        AddOrderDialog(
+            menu = menu,
+            onDismiss = { viewModel.dismissPendingMenu() },
+            onConfirm = { quantity, size, temperature ->
+                viewModel.addToCart(
+                    menu = menu,
+                    quantity = quantity,
+                    size = size,
+                    temperature = temperature
+                )
+                viewModel.dismissPendingMenu()
+            }
+        )
+    }
+}
+
+/**
+ * Dipanggil dari grid saat user klik "+ ADD".
+ * - Snack → langsung addToCart (size=null, temperature=null)
+ * - Lainnya → buka AddOrderDialog lewat onMenuSelected
+ */
+private fun handleMenuClick(menu: Menu, viewModel: OrderViewModel) {
+    if (menu.isSnack()) {
+        viewModel.addToCart(
+            menu = menu,
+            quantity = 1,
+            size = null,
+            temperature = null
+        )
+    } else {
+        viewModel.onMenuSelected(menu)
     }
 }
 
@@ -88,7 +128,6 @@ fun PhoneOrderScreen(
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            // ✅ Header + Search Bar sejajar
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -99,27 +138,18 @@ fun PhoneOrderScreen(
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onBackground
                 )
-
                 OutlinedTextField(
                     value = state.searchQuery,
-                    onValueChange = viewModel::onSearchQueryChange,
+                    onValueChange = viewModel::onSearchQueryChanged,
                     placeholder = {
-                        Text(
-                            text = "Search...",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Text("Search...", style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                     },
                     leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Icon(Icons.Default.Search, contentDescription = "Search",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     },
-                    modifier = Modifier
-                        .width(200.dp)
-                        .height(52.dp),
+                    modifier = Modifier.width(200.dp).height(52.dp),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -131,55 +161,42 @@ fun PhoneOrderScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Category",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            Text("Category", style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
-            MenuCategories(
-                categories = categories,
-                selectedCategory = state.selectedCategory,
-                onCategorySelected = viewModel::onCategorySelected
-            )
+            MenuCategories(categories = categories, selectedCategory = state.selectedCategory,
+                onCategorySelected = viewModel::onCategorySelected)
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Text(
-                text = "Spesial Menu for you",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            Text("Spesial Menu for you", style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             MenuItemsGrid(
                 menus = menus,
                 orderItems = state.orderItems,
                 isTabletPortrait = false,
+                isTabletLandscape = false,
                 isPhone = true,
                 selectedCategory = state.selectedCategory,
                 searchQuery = state.searchQuery,
-                onAddToCart = viewModel::addToCart,
+                onAddToCart = { menu -> handleMenuClick(menu, viewModel) },
                 modifier = Modifier
                     .weight(1f)
                     .padding(bottom = if (state.orderItems.isNotEmpty()) 72.dp else 0.dp)
             )
         }
 
-        // FAB
         if (state.orderItems.isNotEmpty()) {
             ExtendedFloatingActionButton(
                 onClick = { viewModel.toggleOrderPanel(true) },
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 16.dp),
+                modifier = Modifier.align(Alignment.BottomEnd).padding(end = 16.dp, bottom = 16.dp),
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
@@ -189,7 +206,6 @@ fun PhoneOrderScreen(
             }
         }
 
-        // Bottom Sheet order detail
         if (state.showOrderPanel) {
             val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
             ModalBottomSheet(
@@ -209,6 +225,8 @@ fun PhoneOrderScreen(
                     selectedPaymentMethod = state.selectedPaymentMethod,
                     onPaymentMethodChange = viewModel::onPaymentMethodSelected,
                     onMakeOrder = onNavigateToRoom,
+                    selectedTable = state.selectedTable,
+                    onTableSelected = viewModel::onTableSelected,
                     modifier = Modifier.fillMaxSize()
                 )
             }
@@ -228,6 +246,9 @@ fun TabletOrderScreen(
     val categories by viewModel.categories.collectAsState()
     val menus by viewModel.menus.collectAsState()
 
+    // isTabletLandscape = bukan phone, bukan portrait
+    val isTabletLandscape = !screenConfig.isPhone && !screenConfig.isTabletPortrait
+
     Row(
         modifier = Modifier
             .fillMaxSize()
@@ -240,7 +261,6 @@ fun TabletOrderScreen(
                 .padding(24.dp)
                 .padding(bottom = 48.dp)
         ) {
-            // ✅ Header + Search Bar sejajar
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -251,27 +271,18 @@ fun TabletOrderScreen(
                     isTabletPortrait = screenConfig.isTabletPortrait,
                     modifier = Modifier.weight(1f)
                 )
-
                 OutlinedTextField(
                     value = state.searchQuery,
-                    onValueChange = viewModel::onSearchQueryChange, // ✅ OrderViewModel, bukan MenuViewModel
+                    onValueChange = viewModel::onSearchQueryChanged,
                     placeholder = {
-                        Text(
-                            text = "Search menu...",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Text("Search menu...", style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant)
                     },
                     leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Icon(Icons.Default.Search, contentDescription = "Search",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant)
                     },
-                    modifier = Modifier
-                        .width(280.dp)
-                        .height(56.dp),
+                    modifier = Modifier.width(280.dp).height(56.dp),
                     shape = RoundedCornerShape(12.dp),
                     singleLine = true,
                     colors = OutlinedTextFieldDefaults.colors(
@@ -283,36 +294,25 @@ fun TabletOrderScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            Text(
-                text = "Category",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onBackground
-            )
+            Text("Category", style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            MenuCategories(
-                categories = categories,
-                selectedCategory = state.selectedCategory,
-                onCategorySelected = viewModel::onCategorySelected
-            )
+            MenuCategories(categories = categories, selectedCategory = state.selectedCategory,
+                onCategorySelected = viewModel::onCategorySelected)
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Spesial Menu for you",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+                Text("Spesial Menu for you", style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onBackground)
                 if (screenConfig.isTabletPortrait && state.orderItems.isNotEmpty()) {
                     OrderFloatingButton(
                         orderCount = state.orderItems.size,
@@ -327,9 +327,10 @@ fun TabletOrderScreen(
                 menus = menus,
                 orderItems = state.orderItems,
                 isTabletPortrait = screenConfig.isTabletPortrait,
+                isTabletLandscape = isTabletLandscape,
                 selectedCategory = state.selectedCategory,
                 searchQuery = state.searchQuery,
-                onAddToCart = viewModel::addToCart,
+                onAddToCart = { menu -> handleMenuClick(menu, viewModel) },
                 modifier = Modifier.fillMaxSize()
             )
         }
@@ -344,7 +345,9 @@ fun TabletOrderScreen(
                 onEditItem = viewModel::editOrder,
                 selectedPaymentMethod = state.selectedPaymentMethod,
                 onPaymentMethodChange = viewModel::onPaymentMethodSelected,
-                onMakeOrder = onNavigateToRoom
+                onMakeOrder = onNavigateToRoom,
+                selectedTable = state.selectedTable,
+                onTableSelected = viewModel::onTableSelected,
             )
         }
     }
@@ -368,6 +371,8 @@ fun TabletOrderScreen(
                 selectedPaymentMethod = state.selectedPaymentMethod,
                 onPaymentMethodChange = viewModel::onPaymentMethodSelected,
                 onMakeOrder = onNavigateToRoom,
+                selectedTable = state.selectedTable,
+                onTableSelected = viewModel::onTableSelected,
                 modifier = Modifier.fillMaxSize()
             )
         }

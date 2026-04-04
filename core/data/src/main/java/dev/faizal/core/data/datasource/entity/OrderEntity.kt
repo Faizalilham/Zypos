@@ -20,23 +20,24 @@ import androidx.room.PrimaryKey
 data class OrderEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    val orderNumber: String, // Format: ORD-20240529-001
+    val orderNumber: String,
     val menuId: Int,
     val menuName: String,
     val categoryName: String,
     val quantity: Int,
-    val size: String, // SMALL, MEDIUM, LARGE
-    val temperature: String, // HOT, COLD
-    val orderType: String, // DINE_IN, TAKE_AWAY
+    val size: String? = null,
+    val temperature: String? = null,
+    val orderType: String,
     val basePrice: Double,
-    val itemPrice: Double, // Price after size calculation
-    val totalPrice: Double, // itemPrice * quantity
+    val itemPrice: Double,
+    val totalPrice: Double,
     val customerName: String,
-    val orderDate: Long, // Timestamp in millis
-    val orderStatus: String, // PENDING, COMPLETED, CANCELLED
-    val paymentStatus: String, // UNPAID, PAID
+    val orderDate: Long,
+    val orderStatus: String,
+    val paymentStatus: String,
     val notes: String? = null,
     val imageUri: String? = null,
+    val tableNumber: String? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )

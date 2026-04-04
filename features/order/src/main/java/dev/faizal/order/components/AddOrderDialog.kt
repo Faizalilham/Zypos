@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
@@ -32,6 +31,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,7 +46,6 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -68,10 +67,10 @@ import dev.faizal.core.domain.model.order.Temperature
 fun AddOrderDialog(
     menu: Menu,
     initialQuantity: Int = 1,
-    initialSize: Size = Size.MEDIUM,
-    initialTemperature: Temperature = Temperature.HOT,
+    initialSize: Size? = Size.MEDIUM,
+    initialTemperature: Temperature? = Temperature.HOT,
     onDismiss: () -> Unit,
-    onConfirm: (quantity: Int, size: Size, temperature: Temperature) -> Unit
+    onConfirm: (quantity: Int, size: Size?, temperature: Temperature?) -> Unit
 ) {
     var quantity by remember { mutableIntStateOf(initialQuantity) }
     var selectedSize by remember { mutableStateOf(initialSize) }
@@ -86,7 +85,6 @@ fun AddOrderDialog(
         )
     ) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            // Blur background
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -100,22 +98,19 @@ fun AddOrderDialog(
                 enter = fadeIn(tween(300)) + scaleIn(initialScale = 0.8f, animationSpec = tween(300)),
                 exit = fadeOut(tween(200)) + scaleOut(targetScale = 0.8f, animationSpec = tween(200))
             ) {
-                // Gunakan fillMaxWidth dengan padding horizontal agar responsif di phone
                 Surface(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                         .heightIn(max = 680.dp),
                     shape = RoundedCornerShape(24.dp),
-                    color = Color.White,
+                    color = MaterialTheme.colorScheme.surface,
                     shadowElevation = 8.dp
                 ) {
                     Column(modifier = Modifier.fillMaxWidth()) {
                         // Header
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(20.dp),
+                            modifier = Modifier.fillMaxWidth().padding(20.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -124,19 +119,28 @@ fun AddOrderDialog(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 Box(
-                                    modifier = Modifier.size(8.dp).clip(CircleShape)
-                                        .background(Color(0xFF2196F3))
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary)
                                 )
-                                Text("Add Order", fontSize = 18.sp,
-                                    fontWeight = FontWeight.SemiBold, color = Color(0xFF1A1A1A))
+                                Text(
+                                    "Add Order",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
                             }
                             IconButton(onClick = onDismiss, modifier = Modifier.size(32.dp)) {
-                                Icon(Icons.Default.Close, contentDescription = "Close",
-                                    tint = Color(0xFF666666))
+                                Icon(
+                                    Icons.Default.Close,
+                                    contentDescription = "Close",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
 
-                        HorizontalDivider(color = Color(0xFFF5F5F5))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
                         LazyColumn(
                             modifier = Modifier.weight(1f).padding(horizontal = 20.dp),
@@ -152,18 +156,25 @@ fun AddOrderDialog(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text(menu.name, fontSize = 16.sp,
-                                            fontWeight = FontWeight.SemiBold, color = Color(0xFF1A1A1A))
+                                        Text(
+                                            menu.name,
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = MaterialTheme.colorScheme.onSurface
+                                        )
                                         Spacer(modifier = Modifier.height(8.dp))
-                                        Text("Rp${menu.basePrice.toDecimalString()}", fontSize = 20.sp,
-                                            fontWeight = FontWeight.Bold, color = Color(0xFF2196F3))
+                                        Text(
+                                            "Rp${menu.basePrice.toDecimalString()}",
+                                            fontSize = 20.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
                                     }
-
-                                    // Product image — gunakan imageUri bukan imageUrl
                                     Box(
-                                        modifier = Modifier.size(72.dp)
+                                        modifier = Modifier
+                                            .size(72.dp)
                                             .clip(RoundedCornerShape(12.dp))
-                                            .background(Color(0xFFF5F5F5)),
+                                            .background(MaterialTheme.colorScheme.surfaceVariant),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         if (!menu.imageUri.isNullOrEmpty()) {
@@ -171,7 +182,8 @@ fun AddOrderDialog(
                                                 model = ImageRequest.Builder(LocalContext.current)
                                                     .data(menu.imageUri).crossfade(true).build(),
                                                 contentDescription = menu.name,
-                                                modifier = Modifier.fillMaxSize()
+                                                modifier = Modifier
+                                                    .fillMaxSize()
                                                     .clip(RoundedCornerShape(12.dp)),
                                                 contentScale = ContentScale.Crop
                                             )
@@ -189,68 +201,124 @@ fun AddOrderDialog(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("Quantity", fontSize = 14.sp, color = Color(0xFF666666))
+                                    Text(
+                                        "Quantity",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
                                     Row(
                                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        IconButton(
-                                            onClick = { if (quantity > 1) quantity-- },
-                                            modifier = Modifier.size(32.dp).clip(CircleShape)
-                                                .background(Color(0xFFF5F5F5))
+                                        // Tombol −
+                                        Box(
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                                .clickable { if (quantity > 1) quantity-- },
+                                            contentAlignment = Alignment.Center
                                         ) {
-                                            Text("−", fontSize = 18.sp,
-                                                fontWeight = FontWeight.Medium, color = Color(0xFF666666))
+                                            Text(
+                                                "−",
+                                                fontSize = 18.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
                                         }
-                                        Text(quantity.toString(), fontSize = 16.sp,
-                                            fontWeight = FontWeight.SemiBold,
+
+                                        // Angka quantity — pakai Box agar warna teks ikut theme
+                                        Box(
                                             modifier = Modifier.widthIn(min = 30.dp),
-                                            textAlign = TextAlign.Center)
-                                        IconButton(
-                                            onClick = { quantity++ },
-                                            modifier = Modifier.size(32.dp).clip(CircleShape)
-                                                .background(Color(0xFF2196F3))
+                                            contentAlignment = Alignment.Center
                                         ) {
-                                            Text("+", fontSize = 18.sp,
-                                                fontWeight = FontWeight.Medium, color = Color.White)
+                                            Text(
+                                                quantity.toString(),
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.SemiBold,
+                                                textAlign = TextAlign.Center,
+                                                color = MaterialTheme.colorScheme.onSurface
+                                            )
+                                        }
+
+                                        // Tombol +
+                                        Box(
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.primary)
+                                                .clickable { quantity++ },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                "+",
+                                                fontSize = 18.sp,
+                                                fontWeight = FontWeight.Medium,
+                                                color = MaterialTheme.colorScheme.onPrimary
+                                            )
                                         }
                                     }
                                 }
                             }
 
-                            // Size
-                            item {
-                                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    Text("Select a Cup", fontSize = 14.sp,
-                                        fontWeight = FontWeight.Medium, color = Color(0xFF1A1A1A))
-                                    Size.entries.forEach { size ->
-                                        SelectableOption(
-                                            text = when (size) {
-                                                Size.SMALL -> "Small (6oz)"
-                                                Size.MEDIUM -> "Medium (8oz)"
-                                                Size.LARGE -> "Large (12oz)"
-                                            },
-                                            isSelected = selectedSize == size,
-                                            onClick = { selectedSize = size }
+                            // Size — horizontal chips
+                            if (initialSize != null) {
+                                item {
+                                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                        Text(
+                                            "Select a Cup",
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Size.entries.forEach { size ->
+                                                HorizontalSelectableChip(
+                                                    text = when (size) {
+                                                        Size.SMALL -> "Small\n(6oz)"
+                                                        Size.MEDIUM -> "Medium\n(8oz)"
+                                                        Size.LARGE -> "Large\n(12oz)"
+                                                    },
+                                                    isSelected = selectedSize == size,
+                                                    onClick = { selectedSize = size },
+                                                    modifier = Modifier.weight(1f)
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
 
-                            // Temperature
-                            item {
-                                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                                    Text("Temperature", fontSize = 14.sp,
-                                        fontWeight = FontWeight.Medium, color = Color(0xFF1A1A1A))
-                                    Temperature.entries.forEach { temp ->
-                                        SelectableOption(
-                                            text = when (temp) {
-                                                Temperature.HOT -> "Hot"
-                                                Temperature.COLD -> "Cold"
-                                            },
-                                            isSelected = selectedTemperature == temp,
-                                            onClick = { selectedTemperature = temp }
+                            // Temperature — horizontal chips
+                            if (initialTemperature != null) {
+                                item {
+                                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                                        Text(
+                                            "Temperature",
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = MaterialTheme.colorScheme.onSurface
                                         )
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Temperature.entries.forEach { temp ->
+                                                HorizontalSelectableChip(
+                                                    text = when (temp) {
+                                                        Temperature.HOT -> "🔥 Hot"
+                                                        Temperature.COLD -> "❄️ Cold"
+                                                    },
+                                                    isSelected = selectedTemperature == temp,
+                                                    onClick = { selectedTemperature = temp },
+                                                    modifier = Modifier.weight(1f)
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -260,21 +328,32 @@ fun AddOrderDialog(
 
                         // Bottom button
                         Column(
-                            modifier = Modifier.fillMaxWidth().background(Color.White)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(MaterialTheme.colorScheme.surface)
                         ) {
-                            HorizontalDivider(color = Color(0xFFF5F5F5))
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                             val totalPrice = calculateTotalPrice(menu.basePrice, selectedSize, quantity)
                             Button(
                                 onClick = {
                                     onConfirm(quantity, selectedSize, selectedTemperature)
                                     onDismiss()
                                 },
-                                modifier = Modifier.fillMaxWidth().padding(20.dp).height(52.dp),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(20.dp)
+                                    .height(52.dp),
                                 shape = RoundedCornerShape(12.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2196F3))
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary
+                                )
                             ) {
-                                Text("(Rp${totalPrice.toDecimalString()}) Add to Order",
-                                    fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                                Text(
+                                    "(Rp${totalPrice.toDecimalString()}) Add to Order",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
                             }
                         }
                     }
@@ -285,42 +364,44 @@ fun AddOrderDialog(
 }
 
 @Composable
-private fun SelectableOption(text: String, isSelected: Boolean, onClick: () -> Unit) {
+private fun HorizontalSelectableChip(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Surface(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick),
+        modifier = modifier.clickable(onClick = onClick),
         shape = RoundedCornerShape(12.dp),
-        color = if (isSelected) Color(0xFF2196F3).copy(alpha = 0.1f) else Color.Transparent,
-        border = if (isSelected) BorderStroke(2.dp, Color(0xFF2196F3))
-        else BorderStroke(1.dp, Color(0xFFE0E0E0))
+        color = if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        border = if (isSelected) BorderStroke(2.dp, MaterialTheme.colorScheme.primary)
+        else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(14.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 12.dp, horizontal = 4.dp)
         ) {
-            Text(text, fontSize = 14.sp,
-                color = if (isSelected) Color(0xFF2196F3) else Color(0xFF666666),
-                fontWeight = if (isSelected) FontWeight.Medium else FontWeight.Normal)
-            if (isSelected) {
-                Box(
-                    modifier = Modifier.size(20.dp).clip(CircleShape)
-                        .background(Color(0xFF2196F3)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(modifier = Modifier.size(12.dp),
-                        painter = painterResource(R.drawable.check),
-                        contentDescription = null, tint = Color.White)
-                }
-            }
+            Text(
+                text = text,
+                fontSize = 13.sp,
+                fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
+                color = if (isSelected) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                lineHeight = 17.sp
+            )
         }
     }
 }
 
-private fun calculateTotalPrice(basePrice: Double, size: Size, quantity: Int): Double {
+private fun calculateTotalPrice(basePrice: Double, size: Size?, quantity: Int): Double {
     val sizeMultiplier = when (size) {
         Size.SMALL -> 0.8
-        Size.MEDIUM -> 1.0
         Size.LARGE -> 1.3
+        else -> 1.0
     }
     return (basePrice * sizeMultiplier) * quantity
 }

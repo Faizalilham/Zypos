@@ -50,10 +50,8 @@ class OrderViewModel @Inject constructor(
             val matchesCategory = selectedCategory.isNullOrEmpty() ||
                     selectedCategory == "All" ||
                     menu.categoryName == selectedCategory
-
             val matchesSearch = searchQuery.isEmpty() ||
                     menu.name.contains(searchQuery, ignoreCase = true)
-
             matchesCategory && matchesSearch && menu.isActive
         }
     }.stateIn(
@@ -61,7 +59,6 @@ class OrderViewModel @Inject constructor(
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
-
 
     init {
         loadCategories()
@@ -85,15 +82,10 @@ class OrderViewModel @Inject constructor(
         }
     }
 
-    fun onSearchQueryChange(query: String) {
-        state = state.copy(searchQuery = query)
-    }
-
     private fun <T> snapshotFlow(block: (OrderState) -> T) =
         flow {
             var lastValue = block(state)
             emit(lastValue)
-
             while (true) {
                 delay(100)
                 val newValue = block(state)
@@ -106,13 +98,37 @@ class OrderViewModel @Inject constructor(
 
     // ==================== PUBLIC METHODS ====================
 
-    fun addToCart(menu: Menu) {
+    /**
+     * Dipanggil setelah user konfirmasi dari AddOrderDialog.
+     * Size & temperature sudah dipilih user, bukan default lagi.
+     */
+    fun addToCart(
+        menu: Menu,
+        quantity: Int = 1,
+        size: Size? = Size.MEDIUM,
+        temperature: Temperature? = Temperature.HOT
+    ) {
         val updatedCart = addItemToCart(
             currentItems = state.orderItems,
             menu = menu,
+            quantity = quantity,
+            size = size,
+            temperature = temperature,
             orderType = if (state.isDineIn) OrderType.DINE_IN else OrderType.TAKE_AWAY
         )
         state = state.copy(orderItems = updatedCart)
+    }
+
+    /**
+     * Buka dialog pilih size/temperature sebelum masuk cart.
+     * Set menu yang sedang dipilih ke state, lalu UI akan tampilkan AddOrderDialog.
+     */
+    fun onMenuSelected(menu: Menu) {
+        state = state.copy(pendingMenu = menu)
+    }
+
+    fun dismissPendingMenu() {
+        state = state.copy(pendingMenu = null)
     }
 
     fun updateQuantity(order: Order, newQuantity: Int) {
@@ -133,8 +149,10 @@ class OrderViewModel @Inject constructor(
     }
 
     fun editOrder(oldOrder: Order, newOrder: Order) {
+        // Edit: replace berdasarkan referensi objek (bukan menu.id saja)
+        // sehingga 2 Lemon Tea berbeda size/temp tidak saling tertimpa
         val updatedCart = state.orderItems.map {
-            if (it == oldOrder) newOrder else it
+            if (it === oldOrder || it == oldOrder) newOrder else it
         }
         state = state.copy(orderItems = updatedCart)
     }
@@ -155,6 +173,10 @@ class OrderViewModel @Inject constructor(
         state = state.copy(isDarkMode = isDarkMode)
     }
 
+    fun onTableSelected(table: String?) {
+        state = state.copy(selectedTable = table)
+    }
+
     fun onCategorySelected(category: String) {
         state = state.copy(selectedCategory = category)
     }
@@ -173,35 +195,23 @@ class OrderViewModel @Inject constructor(
         onSuccess: (String) -> Unit,
         onError: (String) -> Unit
     ) {
-        // Validasi
-        if (state.orderItems.isEmpty()) {
-            onError("Keranjang kosong")
-            return
-        }
-
-        if (state.selectedPaymentMethod.isEmpty()) {
-            onError("Pilih metode pembayaran")
-            return
-        }
+        if (state.orderItems.isEmpty()) { onError("Keranjang kosong"); return }
+        if (state.selectedPaymentMethod.isEmpty()) { onError("Pilih metode pembayaran"); return }
 
         viewModelScope.launch {
             try {
                 val customerName = if (state.isDineIn) "Dine In" else "Take Away"
-
                 val result = orderRepository.createOrder(
                     orders = state.orderItems,
                     customerName = customerName,
+                    tableNumber = if (state.isDineIn) state.selectedTable else null,
                     orderStatus = OrderStatus.COMPLETED,
                     paymentStatus = PaymentStatus.PAID
                 )
-
                 result.fold(
                     onSuccess = { orderNumber ->
                         clearCart()
-                        state = state.copy(
-                            selectedPaymentMethod = "Credit Card",
-                            showOrderPanel = false
-                        )
+                        state = state.copy(selectedPaymentMethod = "Cash", showOrderPanel = false)
                         onSuccess(orderNumber)
                     },
                     onFailure = { exception ->
@@ -219,47 +229,39 @@ class OrderViewModel @Inject constructor(
     private fun addItemToCart(
         currentItems: List<Order>,
         menu: Menu,
-        name: String = menu.name,
-        imageUri : String? = menu.imageUri,
+        quantity: Int = 1,
         orderType: OrderType = OrderType.DINE_IN,
-        temperature: Temperature = Temperature.HOT,
-        size: Size = Size.MEDIUM
+        temperature: Temperature? = Temperature.HOT,
+        size: Size? = Size.MEDIUM
     ): List<Order> {
-        val existingItem = currentItems.find {
+        val existingIndex = currentItems.indexOfFirst {
             it.menu.id == menu.id &&
                     it.orderType == orderType &&
                     it.temperature == temperature &&
                     it.size == size
         }
 
-        return if (existingItem != null) {
-            currentItems.map { item ->
-                if (item.menu.id == menu.id &&
-                    item.orderType == orderType &&
-                    item.temperature == temperature &&
-                    item.size == size
-                ) {
-                    val newQuantity = item.quantity + 1
-                    val itemPrice = calculateItemPrice(menu.basePrice, size)
-                    item.copy(
-                        quantity = newQuantity,
-                        totalPrice = itemPrice * newQuantity
-                    )
-                } else {
-                    item
-                }
+        return if (existingIndex >= 0) {
+            currentItems.toMutableList().also { list ->
+                val existing = list[existingIndex]
+                val newQuantity = existing.quantity + quantity
+                val itemPrice = calculateItemPrice(menu.basePrice, size)
+                list[existingIndex] = existing.copy(
+                    quantity = newQuantity,
+                    totalPrice = itemPrice * newQuantity
+                )
             }
         } else {
             val itemPrice = calculateItemPrice(menu.basePrice, size)
             currentItems + Order(
-                name = name,
+                name = menu.name,
                 menu = menu,
-                quantity = 1,
-                totalPrice = itemPrice,
+                quantity = quantity,
+                totalPrice = itemPrice * quantity,
                 orderType = orderType,
                 temperature = temperature,
                 size = size,
-                imageUri = imageUri ?: ""
+                imageUri = menu.imageUri ?: ""
             )
         }
     }
@@ -271,57 +273,34 @@ class OrderViewModel @Inject constructor(
     ): List<Order> {
         return if (newQuantity > 0) {
             currentItems.map { currentItem ->
-                if (currentItem.menu.id == item.menu.id &&
-                    currentItem.orderType == item.orderType &&
-                    currentItem.temperature == item.temperature &&
-                    currentItem.size == item.size
-                ) {
+                if (currentItem == item) {
                     val itemPrice = calculateItemPrice(currentItem.menu.basePrice, currentItem.size)
-                    currentItem.copy(
-                        quantity = newQuantity,
-                        totalPrice = itemPrice * newQuantity
-                    )
-                } else {
-                    currentItem
-                }
+                    currentItem.copy(quantity = newQuantity, totalPrice = itemPrice * newQuantity)
+                } else currentItem
             }
         } else {
             removeItemFromCart(currentItems, item)
         }
     }
 
-    private fun removeItemFromCart(
-        currentItems: List<Order>,
-        item: Order
-    ): List<Order> {
-        return currentItems.filter { currentItem ->
-            !(currentItem.menu.id == item.menu.id &&
-                    currentItem.orderType == item.orderType &&
-                    currentItem.temperature == item.temperature &&
-                    currentItem.size == item.size)
+    private fun removeItemFromCart(currentItems: List<Order>, item: Order): List<Order> {
+        // Hapus berdasarkan kesamaan objek, bukan hanya menu.id
+        // sehingga hanya 1 baris yang terhapus meski ada 2 Lemon Tea berbeda
+        return currentItems.filterIndexed { index, currentItem ->
+            // Hapus item pertama yang match saja
+            !(currentItem == item && index == currentItems.indexOf(item))
         }
     }
 
-    private fun calculateItemPrice(basePrice: Double, size: Size): Double {
+    private fun calculateItemPrice(basePrice: Double, size: Size?): Double {
         return when (size) {
             Size.SMALL -> basePrice * 0.8
-            Size.MEDIUM -> basePrice
             Size.LARGE -> basePrice * 1.3
+            else -> basePrice // MEDIUM atau null (snack) = harga base
         }
     }
 
-    fun calculateSubtotal(): Double {
-        return state.orderItems.sumOf { it.totalPrice }
-    }
-
-    fun calculateTax(taxRate: Double = 0.10): Double {
-        val subtotal = calculateSubtotal()
-        return subtotal * taxRate
-    }
-
-    fun calculateTotal(): Double {
-        val subtotal = calculateSubtotal()
-        val tax = calculateTax()
-        return subtotal + tax
-    }
+    fun calculateSubtotal(): Double = state.orderItems.sumOf { it.totalPrice }
+    fun calculateTax(taxRate: Double = 0.10): Double = calculateSubtotal() * taxRate
+    fun calculateTotal(): Double = calculateSubtotal() + calculateTax()
 }

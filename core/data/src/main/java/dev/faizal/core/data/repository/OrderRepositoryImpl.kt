@@ -5,10 +5,10 @@ import androidx.annotation.RequiresApi
 import dev.faizal.core.common.pdf.PdfReportGenerator
 import dev.faizal.core.data.datasource.dao.OrderDao
 import dev.faizal.core.data.datasource.entity.OrderEntity
-import dev.faizal.core.data.mapper.toDomain
-import dev.faizal.core.data.mapper.toDomainCategoryReport
-import dev.faizal.core.data.mapper.toDomainProductReport
-import dev.faizal.core.data.mapper.toDomainReport
+import dev.faizal.core.data.mapper.OrderMapper.toDomain
+import dev.faizal.core.data.mapper.OrderMapper.toDomainCategoryReport
+import dev.faizal.core.data.mapper.OrderMapper.toDomainProductReport
+import dev.faizal.core.data.mapper.OrderMapper.toDomainReport
 import dev.faizal.core.domain.model.order.Order
 import dev.faizal.core.domain.model.order.OrderDetail
 import dev.faizal.core.domain.model.order.OrderStatus
@@ -38,6 +38,7 @@ class OrderRepositoryImpl @Inject constructor(
     override suspend fun createOrder(
         orders: List<Order>,
         customerName: String,
+        tableNumber: String?,
         orderStatus: OrderStatus,
         paymentStatus: PaymentStatus
     ): Result<String> {
@@ -52,8 +53,8 @@ class OrderRepositoryImpl @Inject constructor(
                     menuName = order.name,
                     categoryName = order.menu.categoryName,
                     quantity = order.quantity,
-                    size = order.size.name,
-                    temperature = order.temperature.name,
+                    size = order.size?.name,
+                    temperature = order.temperature?.name,
                     orderType = order.orderType.name,
                     basePrice = order.menu.basePrice,
                     itemPrice = order.totalPrice / order.quantity,
@@ -63,6 +64,7 @@ class OrderRepositoryImpl @Inject constructor(
                     orderStatus = orderStatus.name,
                     paymentStatus = paymentStatus.name,
                     imageUri = order.imageUri,
+                    tableNumber = tableNumber,
                     createdAt = timestamp,
                     updatedAt = timestamp
                 )

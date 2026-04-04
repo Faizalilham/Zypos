@@ -23,7 +23,7 @@ import net.zetetic.database.sqlcipher.SupportOpenHelperFactory as SupportFactory
 
 @Database(
     entities = [CategoryEntity::class, MenuEntity::class, OrderEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -52,6 +52,7 @@ abstract class AppDatabase : RoomDatabase() {
                     .openHelperFactory(factory)
                     .addMigrations(MIGRATION_1_2)
                     .addMigrations(MIGRATION_2_3)
+                    .addMigrations(MIGRATION_3_4)
                     .addCallback(DatabaseCallback())
                     .build()
                 INSTANCE = instance
@@ -78,6 +79,12 @@ abstract class AppDatabase : RoomDatabase() {
                 database.execSQL(
                     "ALTER TABLE orders ADD COLUMN imageUri TEXT"
                 )
+            }
+        }
+
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL("ALTER TABLE orders ADD COLUMN tableNumber TEXT")
             }
         }
 

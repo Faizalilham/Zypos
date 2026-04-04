@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,66 +31,75 @@ fun StatCard(
     title: String,
     value: String,
     unit: String,
-    backgroundColor: Color,
     image: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    accentColor: Color = Color.Transparent
 ) {
     Surface(
         modifier = modifier,
-        color = backgroundColor,
         shape = RoundedCornerShape(12.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
+        Column {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .background(accentColor)
+            )
 
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.5f)) // ← Ubah jadi putih transparan
-                    .align(Alignment.TopEnd),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .padding(16.dp)
             ) {
-                Icon(
-                    painter = painterResource(image),
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp),
-                    tint = Color.Black.copy(alpha = 0.4f) // ← Warna icon hitam transparan
-                )
-            }
 
-            // Content
-            Column(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = title,
-                    fontSize = 13.sp,
-                    color = Color.Black.copy(alpha = 0.6f),
-                    fontWeight = FontWeight.Normal
-                )
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.5f))
+                        .align(Alignment.TopEnd),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(image),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = Color.Black.copy(alpha = 0.4f)
+                    )
+                }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Row(
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                // Content
+                Column(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = value,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.Black
+                        text = title,
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        fontWeight = FontWeight.Normal,
+
                     )
-                    Text(
-                        text = unit,
-                        fontSize = 12.sp,
-                        color = Color.Black.copy(alpha = 0.5f),
-                        modifier = Modifier.padding(bottom = 2.dp)
-                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Text(
+                            text = value,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        )
+                        Text(
+                            text = unit,
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            modifier = Modifier.padding(bottom = 2.dp)
+                        )
+                    }
                 }
             }
         }

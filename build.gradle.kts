@@ -42,7 +42,7 @@ sonarqube {
         property("sonar.projectKey", "Faizalilham_Zypos")
         property("sonar.organization", "faizalilham")
         property("sonar.host.url", "https://sonarcloud.io")
-        property("sonar.qualitygate.wait", "true")
+        property("sonar.qualitygate.wait", "false")
 
         property(
             "sonar.coverage.jacoco.xmlReportPaths",

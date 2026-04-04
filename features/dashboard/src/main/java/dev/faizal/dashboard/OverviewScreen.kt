@@ -27,6 +27,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -35,6 +36,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import dev.faizal.core.common.utils.ScreenConfig
 import dev.faizal.core.common.utils.getCurrentDateInIndonesian
 import dev.faizal.core.common.utils.toCurrencyString
+import dev.faizal.core.designsystem.AccentGreen
 import dev.faizal.core.designsystem.CardBlueDark
 import dev.faizal.core.designsystem.CardBlueLight
 import dev.faizal.core.designsystem.CardGreenDark
@@ -180,22 +182,22 @@ fun ReportScreen(
                                 title = "Total Laba",
                                 value = netProfit.toCurrencyString(),
                                 unit = "",
-                                backgroundColor = if (isDarkMode) CardGreenDark else CardGreenLight,
                                 image = R.drawable.best,
+                                accentColor = AccentGreen,
                             )
                             StatCard(
                                 title = "Total Pendapatan",
-                                value = totalSales.toCurrencyString(), // Contoh
+                                value = totalSales.toCurrencyString(),
                                 unit = "",
-                                backgroundColor = if (isDarkMode) CardBlueDark else CardBlueLight,
                                 image = R.drawable.trend_up,
+                                accentColor = PrimaryBlue,
                             )
                             StatCard(
                                 title = "Total Pengeluaran",
                                 value = "Rp ${NumberFormat.getNumberInstance(Locale("in", "ID")).format(totalSales - netProfit)}",
                                 unit = "",
-                                backgroundColor = if (isDarkMode) CardYellowDark else CardYellowLight,
                                 image = R.drawable.trend_down,
+                                accentColor = Color(0xFFF9A825),
                             )
                         }
                     }
@@ -208,25 +210,25 @@ fun ReportScreen(
                                 title = "Total Laba",
                                 value = netProfit.toCurrencyString(),
                                 unit = "",
-                                backgroundColor = if (isDarkMode) CardGreenDark else CardGreenLight,
                                 image = R.drawable.best,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                accentColor = AccentGreen,
                             )
                             StatCard(
                                 title = "Total Pendapatan",
                                 value = totalSales.toCurrencyString(),
                                 unit = "",
-                                backgroundColor = if (isDarkMode) CardBlueDark else CardBlueLight,
                                 image = R.drawable.trend_up,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                accentColor = PrimaryBlue,
                             )
                             StatCard(
                                 title = "Total Pengeluaran",
                                 value = "Rp ${NumberFormat.getNumberInstance(Locale("in", "ID")).format(totalSales - netProfit)}",
                                 unit = "",
-                                backgroundColor = if (isDarkMode) CardYellowDark else CardYellowLight,
                                 image = R.drawable.trend_down,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                accentColor = Color(0xFFF9A825),
                             )
                         }
                     }
@@ -239,25 +241,25 @@ fun ReportScreen(
                                 title = "Total Laba",
                                 value = netProfit.toCurrencyString(),
                                 unit = "",
-                                backgroundColor = if (isDarkMode) CardGreenDark else CardGreenLight,
                                 image = R.drawable.best,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                accentColor = AccentGreen,
                             )
                             StatCard(
                                 title = "Total Pendapatan",
                                 value = totalSales.toCurrencyString(),
                                 unit = "",
-                                backgroundColor = if (isDarkMode) CardBlueDark else CardBlueLight,
                                 image = R.drawable.trend_up,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                accentColor = PrimaryBlue,
                             )
                             StatCard(
                                 title = "Total Pengeluaran",
                                 value = "Rp ${NumberFormat.getNumberInstance(Locale("in", "ID")).format(totalSales - netProfit)}",
                                 unit = "",
-                                backgroundColor = if (isDarkMode) CardYellowDark else CardYellowLight,
                                 image = R.drawable.trend_down,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                accentColor = Color(0xFFF9A825),
                             )
                         }
                     }

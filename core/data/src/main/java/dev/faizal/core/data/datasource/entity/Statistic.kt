@@ -44,3 +44,8 @@ data class TopProduct(
     val imageUri: String? = null,
     val imageResourceId: Int? = null
 )
+
+data class CategoryWithMenuCount(
+    @Embedded val category: CategoryEntity,
+    val menuCount: Int
+)

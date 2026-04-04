@@ -12,8 +12,8 @@ android {
         applicationId = "dev.faizal.zypos"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 4
+        versionName = "1.0.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -96,4 +96,6 @@ dependencies {
     androidTestImplementation(libs.kotlinx.coroutines.test)
     androidTestImplementation(libs.truth)
     androidTestImplementation(libs.turbine)
+
+    implementation("com.google.errorprone:error_prone_annotations:2.23.0")
 }

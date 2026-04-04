@@ -55,16 +55,19 @@ fun OrderItemRow(
 ) {
     var showEditDialog by remember { mutableStateOf(false) }
 
+    // Snack = tidak punya size & temperature
+    val isSnack = orderItem.size == null && orderItem.temperature == null
+
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Product Image — pakai imageUri, fallback ke icon
+        // Thumbnail
         Box(
             modifier = Modifier
-                .size(64.dp)
-                .clip(RoundedCornerShape(10.dp))
+                .size(44.dp)
+                .clip(RoundedCornerShape(8.dp))
                 .background(MaterialTheme.colorScheme.surfaceVariant),
             contentAlignment = Alignment.Center
         ) {
@@ -76,23 +79,25 @@ fun OrderItemRow(
                         .build(),
                     contentDescription = orderItem.menu.name,
                     modifier = Modifier
-                        .size(64.dp)
-                        .clip(RoundedCornerShape(10.dp)),
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(8.dp)),
                     contentScale = ContentScale.Crop
                 )
             } else {
                 Icon(
                     Icons.Default.ShoppingCart,
                     contentDescription = null,
-                    modifier = Modifier.size(28.dp),
+                    modifier = Modifier.size(20.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
                 )
             }
         }
 
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
         Column(modifier = Modifier.weight(1f)) {
+
+            // Nama + Edit button (edit hanya untuk non-snack)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -100,121 +105,149 @@ fun OrderItemRow(
             ) {
                 Text(
                     orderItem.menu.name,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.SemiBold),
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
-                Surface(
-                    shape = CircleShape,
-                    color = Color(0xFFE3F2FD),
-                    modifier = Modifier.size(28.dp)
-                ) {
-                    IconButton(
-                        onClick = { showEditDialog = true },
-                        modifier = Modifier.size(28.dp)
+                if (!isSnack) {
+                    Surface(
+                        shape = CircleShape,
+                        color = Color(0xFFE3F2FD),
+                        modifier = Modifier.size(22.dp)
                     ) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit",
-                            modifier = Modifier.size(14.dp), tint = Color(0xFF2196F3))
+                        IconButton(
+                            onClick = { showEditDialog = true },
+                            modifier = Modifier.size(22.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Edit,
+                                contentDescription = "Edit",
+                                modifier = Modifier.size(11.dp),
+                                tint = Color(0xFF2196F3)
+                            )
+                        }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // Size & Temp tags
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(shape = RoundedCornerShape(4.dp), color = Color(0xFFFFF3E0)) {
-                    Text(
-                        when (orderItem.size) {
-                            Size.SMALL -> "S"; Size.MEDIUM -> "M"; Size.LARGE -> "L"
-                        },
-                        fontSize = 10.sp, fontWeight = FontWeight.Medium, color = Color(0xFFFF9800),
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                    )
-                }
-                Surface(
-                    shape = RoundedCornerShape(4.dp),
-                    color = if (orderItem.temperature == Temperature.HOT) Color(0xFFFFEBEE)
-                    else Color(0xFFE3F2FD)
+            // Tags size & temperature — hanya muncul jika bukan snack
+            if (!isSnack) {
+                Spacer(modifier = Modifier.height(3.dp))
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        when (orderItem.temperature) {
-                            Temperature.HOT -> "🔥 Hot"; Temperature.COLD -> "❄️ Cold"
-                        },
-                        fontSize = 10.sp, fontWeight = FontWeight.Medium,
-                        color = if (orderItem.temperature == Temperature.HOT) Color(0xFFD32F2F)
-                        else Color(0xFF1976D2),
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
-                    )
+                    orderItem.size?.let { size ->
+                        Surface(shape = RoundedCornerShape(4.dp), color = Color(0xFFFFF3E0)) {
+                            Text(
+                                when (size) {
+                                    Size.SMALL -> "S"
+                                    Size.MEDIUM -> "M"
+                                    Size.LARGE -> "L"
+                                },
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFFFF9800),
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                            )
+                        }
+                    }
+                    orderItem.temperature?.let { temp ->
+                        Surface(
+                            shape = RoundedCornerShape(4.dp),
+                            color = if (temp == Temperature.HOT) Color(0xFFFFEBEE) else Color(0xFFE3F2FD)
+                        ) {
+                            Text(
+                                if (temp == Temperature.HOT) "🔥 Hot" else "❄️ Cold",
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = if (temp == Temperature.HOT) Color(0xFFD32F2F) else Color(0xFF1976D2),
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                            )
+                        }
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(5.dp))
 
-            // Quantity selector
+            // Quantity + Harga dalam satu baris
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .width(100.dp)
-                    .height(36.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .padding(horizontal = 4.dp, vertical = 4.dp)
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Surface(shape = CircleShape, color = Color.White) {
-                    IconButton(
-                        onClick = { onQuantityChange(orderItem.quantity - 1) },
-                        modifier = Modifier.size(24.dp)
-                    ) {
-                        Text("−", fontSize = 14.sp, fontWeight = FontWeight.Medium,
-                            color = MaterialTheme.colorScheme.onSurface)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .width(80.dp)
+                        .height(26.dp)
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                        .padding(horizontal = 3.dp, vertical = 3.dp)
+                ) {
+                    Surface(shape = CircleShape, color = Color.White) {
+                        IconButton(
+                            onClick = { onQuantityChange(orderItem.quantity - 1) },
+                            modifier = Modifier.size(20.dp)
+                        ) {
+                            Text(
+                                "−", fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+                    Text(
+                        orderItem.quantity.toString(),
+                        style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Surface(shape = CircleShape, color = Color.White) {
+                        IconButton(
+                            onClick = { onQuantityChange(orderItem.quantity + 1) },
+                            modifier = Modifier.size(20.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = "Increase",
+                                modifier = Modifier.size(10.dp),
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 }
-                Text(orderItem.quantity.toString(),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                    color = MaterialTheme.colorScheme.onSurface)
-                Surface(shape = CircleShape, color = Color.White) {
-                    IconButton(
-                        onClick = { onQuantityChange(orderItem.quantity + 1) },
-                        modifier = Modifier.size(24.dp)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = "Increase",
-                            modifier = Modifier.size(12.dp),
-                            tint = MaterialTheme.colorScheme.onSurface)
-                    }
-                }
+
+                Text(
+                    "Rp${orderItem.totalPrice.toDecimalString()}",
+                    style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             }
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                "Rp${orderItem.totalPrice.toDecimalString()}",
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Bold),
-                color = MaterialTheme.colorScheme.onSurface
-            )
         }
 
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(modifier = Modifier.width(8.dp))
 
         // Delete button
         Surface(
-            shape = RoundedCornerShape(8.dp),
+            shape = RoundedCornerShape(6.dp),
             color = Color(0xFFFEE2E2),
-            modifier = Modifier.size(32.dp)
+            modifier = Modifier.size(26.dp)
         ) {
-            IconButton(onClick = onRemove, modifier = Modifier.size(32.dp)) {
-                Icon(painter = painterResource(R.drawable.delete),
+            IconButton(onClick = onRemove, modifier = Modifier.size(26.dp)) {
+                Icon(
+                    painter = painterResource(R.drawable.delete),
                     contentDescription = "Remove",
-                    modifier = Modifier.size(18.dp), tint = Color(0xFFEF4444))
+                    modifier = Modifier.size(14.dp),
+                    tint = Color(0xFFEF4444)
+                )
             }
         }
     }
 
-    if (showEditDialog) {
+    // Edit dialog — hanya untuk non-snack
+    if (showEditDialog && !isSnack) {
         AddOrderDialog(
             menu = orderItem.menu,
             initialQuantity = orderItem.quantity,
@@ -222,17 +255,25 @@ fun OrderItemRow(
             initialTemperature = orderItem.temperature,
             onDismiss = { showEditDialog = false },
             onConfirm = { quantity, size, temperature ->
-                onEdit(orderItem.copy(
-                    quantity = quantity, size = size, temperature = temperature,
-                    totalPrice = calculateTotalPrice(orderItem.menu.basePrice, size, quantity)
-                ))
+                onEdit(
+                    orderItem.copy(
+                        quantity = quantity,
+                        size = size,
+                        temperature = temperature,
+                        totalPrice = calculateTotalPrice(orderItem.menu.basePrice, size, quantity)
+                    )
+                )
                 showEditDialog = false
             }
         )
     }
 }
 
-private fun calculateTotalPrice(basePrice: Double, size: Size, quantity: Int): Double {
-    val sizeMultiplier = when (size) { Size.SMALL -> 0.8; Size.MEDIUM -> 1.0; Size.LARGE -> 1.3 }
+private fun calculateTotalPrice(basePrice: Double, size: Size?, quantity: Int): Double {
+    val sizeMultiplier = when (size) {
+        Size.SMALL -> 0.8
+        Size.LARGE -> 1.3
+        else -> 1.0
+    }
     return (basePrice * sizeMultiplier) * quantity
 }
