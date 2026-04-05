@@ -1,1 +1,1 @@
-- Peningkatan performa aplikasi
+- Peningkatan performa aplikasi ZyPOS
