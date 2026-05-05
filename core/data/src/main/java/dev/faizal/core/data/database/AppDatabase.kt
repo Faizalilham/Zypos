@@ -22,7 +22,7 @@ import net.zetetic.database.sqlcipher.SupportOpenHelperFactory as SupportFactory
 
 @Database(
     entities = [CategoryEntity::class, MenuEntity::class, OrderEntity::class, StoreEntity::class],
-    version = 6,
+    version = 7,
     exportSchema = false,
 )
 abstract class AppDatabase : RoomDatabase() {

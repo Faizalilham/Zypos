@@ -23,6 +23,7 @@ class OnboardingViewModel @Inject constructor(
     private val saveOnboardingUseCase: SaveOnboardingUseCase,
 ) : ViewModel() {
 
+    private var isSaving = false
     var state by mutableStateOf(OnboardingState())
         private set
 
@@ -153,6 +154,9 @@ class OnboardingViewModel @Inject constructor(
      * Kalau gagal save, set errorMessage tapi TIDAK mark done — biar user retry.
      */
     fun finishOnboarding(onSuccess: () -> Unit) {
+        if (isSaving) return
+        isSaving = true
+
         viewModelScope.launch {
             state = state.copy(isLoading = true, errorMessage = null)
 
@@ -163,6 +167,7 @@ class OnboardingViewModel @Inject constructor(
                     onSuccess()
                 }
                 .onFailure { error ->
+                    isSaving = false
                     state = state.copy(
                         isLoading = false,
                         errorMessage = error.message ?: "Gagal menyimpan pengaturan",
