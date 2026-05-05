@@ -90,6 +90,8 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.coil.compose)
+    implementation(libs.app.update)
+    implementation(libs.app.update.ktx)
 
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.itext.core)
