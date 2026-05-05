@@ -50,7 +50,6 @@ val BorderColor = Color(0x40000000)
 @Composable
 fun DarkModeSwitch(checked: Boolean, modifier: Modifier = Modifier, onCheckedChanged: (Boolean) -> Unit) {
 
-    // Ukuran diperkecil maksimal
     val switchWidth = 70.dp
     val switchHeight = 36.dp
     val handleSize = 28.dp
@@ -69,12 +68,11 @@ fun DarkModeSwitch(checked: Boolean, modifier: Modifier = Modifier, onCheckedCha
         onDispose { }
     }
 
-    // Box luar untuk area klik
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
-            .width(switchWidth + 24.dp)  // Padding klik horizontal
-            .height(switchHeight + 12.dp) // Padding klik vertical
+            .width(switchWidth + 24.dp)
+            .height(switchHeight + 12.dp)
             .toggleable(
                 value = checked,
                 onValueChange = onCheckedChanged,
@@ -83,7 +81,7 @@ fun DarkModeSwitch(checked: Boolean, modifier: Modifier = Modifier, onCheckedCha
                 indication = null
             )
     ) {
-        // Box dalam untuk visual switch
+
         Box(
             contentAlignment = Alignment.CenterStart,
             modifier = Modifier
@@ -91,7 +89,7 @@ fun DarkModeSwitch(checked: Boolean, modifier: Modifier = Modifier, onCheckedCha
                 .height(switchHeight)
                 .clip(RoundedCornerShape(switchHeight))
                 .background(lerp(BlueSky, NightSky, offset.value))
-                .border(1.5.dp, BorderColor, RoundedCornerShape(switchHeight))  // Border lebih tipis
+                .border(1.5.dp, BorderColor, RoundedCornerShape(switchHeight))
         ) {
             val backgroundPainter = painterResource(R.drawable.background)
             Canvas(modifier = Modifier.fillMaxSize()) {

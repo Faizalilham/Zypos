@@ -2,6 +2,7 @@ package dev.faizal.zypos.ui.screens
 
 import android.os.Build
 import android.util.Log
+import androidx.activity.compose.BackHandler
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -40,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import dev.faizal.core.common.utils.ScreenConfig
-import dev.faizal.core.common.utils.rememberScreenConfig
 import dev.faizal.core.designsystem.R
 import dev.faizal.dashboard.ReportScreen
 import dev.faizal.favorite.FavoriteProductDetailScreen
@@ -50,9 +50,11 @@ import dev.faizal.order.OrderScreen
 import dev.faizal.order.OrderViewModel
 import dev.faizal.transaction.TransactionAllScreen
 import dev.faizal.ui.component.Sidebar
+import dev.faizal.ui.component.TwoActionDialog
 import dev.faizal.ui.navigation.MainRoute
 import dev.faizal.zypos.ui.screens.transaction.TransactionScreen
 import kotlinx.coroutines.launch
+import kotlin.system.exitProcess
 
 data class BottomNavItem(
     val iconRes: Int,
@@ -75,6 +77,24 @@ fun MainNavigation(
     var selectedScreen by remember { mutableStateOf<MainRoute>(MainRoute.Overview) }
     var isSidebarOpen by remember { mutableStateOf(!screenConfig.isPhone && !screenConfig.isTabletPortrait) }
     val snackbarHostState = remember { SnackbarHostState() }
+
+    var showExitDialog by remember { mutableStateOf(false) }
+
+    BackHandler {
+        showExitDialog = true
+    }
+
+    if (showExitDialog) {
+        TwoActionDialog(
+            title = "Keluar Aplikasi",
+            message = "Apakah Anda yakin ingin keluar dari aplikasi?",
+            primaryLabel = "KELUAR",
+            secondaryLabel = "BATAL",
+            onPrimary = { exitProcess(0) },
+            onSecondary = { showExitDialog = false },
+            onDismiss = { showExitDialog = false },
+        )
+    }
 
     if (screenConfig.isPhone) {
         PhoneLayout(

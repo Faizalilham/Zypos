@@ -41,6 +41,11 @@ val SurfaceGray = Color(0xFFF0F0F0)
 val BorderLight = Color(0xFFE0E0E0)
 val StatusError = Color(0xFFfc4a4a)
 
+val AccentOrange = Color(0xFFFF9800)
+val AccentPink = Color(0xFFE91E63)
+val AccentPurple = Color(0xFF9C27B0)
+val AccentYellow = Color(0xFFFFEB3B)
+val AccentCyan = Color(0xFF00BCD4)
 
 val OnboardingLavender = Color(0xFFD6E0FF)   // Welcome intro — selaras PrimaryBlueLight
 val OnboardingMintGreen = Color(0xFFD4F0DC)  // Goal & Priority — selaras AccentGreen

@@ -24,10 +24,10 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun Header(
-    title: String,                        // ← Judul dinamis
-    subtitle: String? = null,             // ← Subtitle opsional (misal tanggal)
-    emoji: String? = null,                // ← Emoji opsional
-    showSearch: Boolean = false,          // ← Kontrol tampilan search
+    title: String,
+    subtitle: String? = null,
+    emoji: String? = null,
+    showSearch: Boolean = false,
     searchQuery: String = "",
     onSearchChange: (String) -> Unit = {},
     onMenuClick: () -> Unit = {},

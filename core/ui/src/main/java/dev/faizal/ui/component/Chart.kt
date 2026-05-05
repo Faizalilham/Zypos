@@ -52,6 +52,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.faizal.core.common.utils.toPercentageString
+import dev.faizal.core.designsystem.*
 import dev.faizal.core.designsystem.R
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -60,24 +61,23 @@ import kotlin.math.sin
 
 @Composable
 fun SimplePieChart(
-    data: List<Pair<String, Int>>, // Pair<ProductName, OrderCount>
+    data: List<Pair<String, Int>>,
     modifier: Modifier = Modifier
 ) {
     val total = data.sumOf { it.second }
 
     if (total == 0) return
 
-    // Generate colors for each slice
-    val colors = listOf(
-        Color(0xFF2196F3), // Biru
-        Color(0xFFFF9800), // Orange
-        Color(0xFF4CAF50), // Hijau
-        Color(0xFFE91E63), // Pink
-        Color(0xFF9C27B0), // Purple
-        Color(0xFFFFEB3B), // Kuning
-        Color(0xFF00BCD4), // Cyan
-    )
 
+    val colors = listOf(
+        PrimaryBlue,
+        AccentOrange,
+        AccentGreen,
+        AccentPink,
+        AccentPurple,
+        AccentYellow,
+        AccentCyan,
+    )
     Box(
         modifier = modifier,
         contentAlignment = Alignment.Center
@@ -103,10 +103,9 @@ fun SimplePieChart(
                     size = Size(radius * 2, radius * 2)
                 )
 
-                // ✅ Draw percentage text on each slice
-                if (percentage > 0.08) { // Only show if slice is large enough (>8%)
+                if (percentage > 0.08) {
                     val angleInRadians = Math.toRadians((currentAngle + sweepAngle / 2).toDouble())
-                    val textRadius = radius * 0.65f // Position text at 65% of radius
+                    val textRadius = radius * 0.65f
                     val textX = centerX + (textRadius * cos(angleInRadians)).toFloat()
                     val textY = centerY + (textRadius * sin(angleInRadians)).toFloat()
 
@@ -132,7 +131,6 @@ fun SimplePieChart(
                 currentAngle += sweepAngle
             }
 
-            // Draw white center circle (donut effect)
             drawCircle(
                 color = Color.White,
                 radius = radius * 0.5f,
@@ -149,13 +147,13 @@ fun PieChartLegend(
 ) {
 
     val colors = listOf(
-        Color(0xFF2196F3),
-        Color(0xFFFF9800),
-        Color(0xFF4CAF50),
-        Color(0xFFE91E63),
-        Color(0xFF9C27B0),
-        Color(0xFFFFEB3B),
-        Color(0xFF00BCD4),
+        PrimaryBlue,
+        AccentOrange,
+        AccentGreen,
+        AccentPink,
+        AccentPurple,
+        AccentYellow,
+        AccentCyan,
     )
 
     val total = data.sumOf { it.second }
@@ -204,8 +202,6 @@ fun WaveChart(
 ) {
     var selectedDataPoint by remember { mutableStateOf<Pair<Int, Float>?>(null) }
     var isHovering by remember { mutableStateOf(false) }
-
-    // ✅ Gunakan dataPoints dari parameter, bukan generate random
     val fullDataPoints = remember(dataPoints) {
         dataPoints.ifEmpty {
             // Default data jika kosong
@@ -219,7 +215,6 @@ fun WaveChart(
 
     Box(modifier = modifier) {
         if (fullDataPoints.all { it.second == 0f }) {
-            // ✅ Empty state jika semua data 0
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
@@ -297,7 +292,6 @@ fun WaveChart(
                         wavePoints.add(Offset(x, y))
                     }
 
-                    // Create smooth curve
                     wavePoints.forEachIndexed { index, point ->
                         if (index == 0) {
                             wavePath.moveTo(point.x, point.y)
@@ -339,11 +333,11 @@ fun WaveChart(
                         path = fillPath,
                         brush = Brush.verticalGradient(
                             colorStops = arrayOf(
-                                0.0f to Color(0xFF2196F3).copy(alpha = 0.4f),
-                                0.3f to Color(0xFF2196F3).copy(alpha = 0.25f),
-                                0.6f to Color(0xFF2196F3).copy(alpha = 0.15f),
-                                0.8f to Color(0xFF2196F3).copy(alpha = 0.05f),
-                                1.0f to Color(0xFF2196F3).copy(alpha = 0.0f)
+                                0.0f to PrimaryBlue.copy(alpha = 0.4f),
+                                0.3f to PrimaryBlue.copy(alpha = 0.25f),
+                                0.6f to PrimaryBlue.copy(alpha = 0.15f),
+                                0.8f to PrimaryBlue.copy(alpha = 0.05f),
+                                1.0f to PrimaryBlue.copy(alpha = 0.0f)
                             ),
                             startY = 0f,
                             endY = height
@@ -353,7 +347,7 @@ fun WaveChart(
                     // Draw wave line with shadow
                     drawPath(
                         path = wavePath,
-                        color = Color(0xFF2196F3).copy(alpha = 0.2f),
+                        color = PrimaryBlue.copy(alpha = 0.2f),
                         style = Stroke(
                             width = 4.dp.toPx(),
                             cap = StrokeCap.Round,
@@ -363,7 +357,7 @@ fun WaveChart(
 
                     drawPath(
                         path = wavePath,
-                        color = Color(0xFF2196F3),
+                        color = PrimaryBlue,
                         style = Stroke(
                             width = 2.5.dp.toPx(),
                             cap = StrokeCap.Round,
@@ -371,13 +365,12 @@ fun WaveChart(
                         )
                     )
 
-                    // Draw hover effects
                     selectedDataPoint?.let { (selectedIndex, _) ->
                         if (selectedIndex < wavePoints.size) {
                             val point = wavePoints[selectedIndex]
 
                             drawLine(
-                                color = Color(0xFF2196F3).copy(alpha = 0.2f),
+                                color = PrimaryBlue.copy(alpha = 0.2f),
                                 start = Offset(point.x, 0f),
                                 end = Offset(point.x, height),
                                 strokeWidth = 1.5.dp.toPx(),
@@ -387,7 +380,7 @@ fun WaveChart(
                             )
 
                             drawCircle(
-                                color = Color(0xFF2196F3).copy(alpha = 0.2f),
+                                color = PrimaryBlue.copy(alpha = 0.2f),
                                 radius = 12.dp.toPx(),
                                 center = point
                             )
@@ -399,7 +392,7 @@ fun WaveChart(
                             )
 
                             drawCircle(
-                                color = Color(0xFF2196F3),
+                                color = PrimaryBlue,
                                 radius = 5.dp.toPx(),
                                 center = point
                             )
