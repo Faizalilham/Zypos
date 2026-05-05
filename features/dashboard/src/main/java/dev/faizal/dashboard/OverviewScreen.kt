@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -37,12 +38,6 @@ import dev.faizal.core.common.utils.ScreenConfig
 import dev.faizal.core.common.utils.getCurrentDateInIndonesian
 import dev.faizal.core.common.utils.toCurrencyString
 import dev.faizal.core.designsystem.AccentGreen
-import dev.faizal.core.designsystem.CardBlueDark
-import dev.faizal.core.designsystem.CardBlueLight
-import dev.faizal.core.designsystem.CardGreenDark
-import dev.faizal.core.designsystem.CardGreenLight
-import dev.faizal.core.designsystem.CardYellowDark
-import dev.faizal.core.designsystem.CardYellowLight
 import dev.faizal.core.designsystem.PrimaryBlue
 import dev.faizal.core.designsystem.R
 import dev.faizal.dashboard.component.AllOrdersCard
@@ -54,7 +49,6 @@ import dev.faizal.ui.component.Header
 import java.text.NumberFormat
 import java.util.Locale
 
-
 @RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,8 +57,8 @@ fun ReportScreen(
     isDarkMode: Boolean = false,
     onDarkModeChange: (Boolean) -> Unit = {},
     onToggleSidebar: () -> Unit = {},
-    onNavigationFavorite : () -> Unit = {},
-    onNavigationDailySales : () -> Unit = {}
+    onNavigationFavorite: () -> Unit = {},
+    onNavigationDailySales: () -> Unit = {},
 ) {
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -73,6 +67,10 @@ fun ReportScreen(
     val reportState = reportViewModel.state
     val report = reportState.report
     val context = LocalContext.current
+
+    // Observe store settings untuk personalisasi header
+    val storeSettings by reportViewModel.storeSettings.collectAsState()
+    val storeName = storeSettings?.storeName ?: "ZyPos"
 
     var selectedMonth by remember { mutableIntStateOf(reportState.month) }
     var selectedYear by remember { mutableIntStateOf(reportState.year) }
@@ -103,42 +101,48 @@ fun ReportScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(PrimaryBlue.copy(alpha = 0.05f))
+            .background(PrimaryBlue.copy(alpha = 0.05f)),
     ) {
-        // Header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
                     horizontal = if (screenConfig.isPhone) 16.dp else 24.dp,
-                    vertical = 16.dp
-                )
+                    vertical = 16.dp,
+                ),
         ) {
             if (screenConfig.isPhone) {
-                Text(
-                    text = "Report 📊",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+                Column {
+                    Text(
+                        text = "Halo, $storeName 👋",
+                        style = MaterialTheme.typography.headlineSmall,
+                        color = MaterialTheme.colorScheme.onBackground,
+                    )
+                    Text(
+                        text = getCurrentDateInIndonesian(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 IconButton(onClick = { onDarkModeChange(!isDarkMode) }) {
                     Icon(
                         painter = painterResource(
-                            id = if (isDarkMode) R.drawable.sun else R.drawable.moon
+                            id = if (isDarkMode) R.drawable.sun else R.drawable.moon,
                         ),
                         contentDescription = if (isDarkMode) "Switch to Light Mode" else "Switch to Dark Mode",
                         modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.onBackground
+                        tint = MaterialTheme.colorScheme.onBackground,
                     )
                 }
             } else {
                 Header(
-                    title = "Let's Do Your Best Today",
+                    title = "Halo, $storeName",
                     subtitle = getCurrentDateInIndonesian(),
-                    emoji = "📦",
+                    emoji = "👋",
                     searchQuery = reportState.searchQuery,
                     onSearchChange = { reportViewModel.onSearchQueryChanged(it) },
                     onMenuClick = onToggleSidebar,
-                    isTabletPortrait = screenConfig.isTabletPortrait
+                    isTabletPortrait = screenConfig.isTabletPortrait,
                 )
             }
         }
@@ -147,7 +151,7 @@ fun ReportScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(if (screenConfig.isPhone) 12.dp else 16.dp),
-            verticalArrangement = Arrangement.spacedBy(if (screenConfig.isPhone) 12.dp else 16.dp)
+            verticalArrangement = Arrangement.spacedBy(if (screenConfig.isPhone) 12.dp else 16.dp),
         ) {
 
             item {
@@ -163,40 +167,32 @@ fun ReportScreen(
                         reportViewModel.downloadPdfReport(
                             context = context,
                             onSuccess = {
-                                Toast.makeText(context, "Success Generate PDF with name : ${it.name}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, "Success Generate PDF: ${it.name}", Toast.LENGTH_SHORT).show()
                             },
                             onError = {
                                 Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-                            }
+                            },
                         )
-                    }
+                    },
                 )
             }
-
 
             item {
                 when {
                     screenConfig.isPhone -> {
                         Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                             StatCard(
-                                title = "Total Laba",
-                                value = netProfit.toCurrencyString(),
-                                unit = "",
-                                image = R.drawable.best,
-                                accentColor = AccentGreen,
+                                title = "Total Laba", value = netProfit.toCurrencyString(),
+                                unit = "", image = R.drawable.best, accentColor = AccentGreen,
                             )
                             StatCard(
-                                title = "Total Pendapatan",
-                                value = totalSales.toCurrencyString(),
-                                unit = "",
-                                image = R.drawable.trend_up,
-                                accentColor = PrimaryBlue,
+                                title = "Total Pendapatan", value = totalSales.toCurrencyString(),
+                                unit = "", image = R.drawable.trend_up, accentColor = PrimaryBlue,
                             )
                             StatCard(
                                 title = "Total Pengeluaran",
                                 value = "Rp ${NumberFormat.getNumberInstance(Locale("in", "ID")).format(totalSales - netProfit)}",
-                                unit = "",
-                                image = R.drawable.trend_down,
+                                unit = "", image = R.drawable.trend_down,
                                 accentColor = Color(0xFFF9A825),
                             )
                         }
@@ -204,69 +200,44 @@ fun ReportScreen(
                     isLandscape -> {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
-                            StatCard(
-                                title = "Total Laba",
-                                value = netProfit.toCurrencyString(),
-                                unit = "",
-                                image = R.drawable.best,
-                                modifier = Modifier.weight(1f),
-                                accentColor = AccentGreen,
-                            )
-                            StatCard(
-                                title = "Total Pendapatan",
-                                value = totalSales.toCurrencyString(),
-                                unit = "",
-                                image = R.drawable.trend_up,
-                                modifier = Modifier.weight(1f),
-                                accentColor = PrimaryBlue,
-                            )
+                            StatCard(title = "Total Laba", value = netProfit.toCurrencyString(),
+                                unit = "", image = R.drawable.best, modifier = Modifier.weight(1f),
+                                accentColor = AccentGreen)
+                            StatCard(title = "Total Pendapatan", value = totalSales.toCurrencyString(),
+                                unit = "", image = R.drawable.trend_up, modifier = Modifier.weight(1f),
+                                accentColor = PrimaryBlue)
                             StatCard(
                                 title = "Total Pengeluaran",
                                 value = "Rp ${NumberFormat.getNumberInstance(Locale("in", "ID")).format(totalSales - netProfit)}",
-                                unit = "",
-                                image = R.drawable.trend_down,
-                                modifier = Modifier.weight(1f),
-                                accentColor = Color(0xFFF9A825),
+                                unit = "", image = R.drawable.trend_down,
+                                modifier = Modifier.weight(1f), accentColor = Color(0xFFF9A825),
                             )
                         }
                     }
                     else -> {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
                         ) {
-                            StatCard(
-                                title = "Total Laba",
-                                value = netProfit.toCurrencyString(),
-                                unit = "",
-                                image = R.drawable.best,
-                                modifier = Modifier.weight(1f),
-                                accentColor = AccentGreen,
-                            )
-                            StatCard(
-                                title = "Total Pendapatan",
-                                value = totalSales.toCurrencyString(),
-                                unit = "",
-                                image = R.drawable.trend_up,
-                                modifier = Modifier.weight(1f),
-                                accentColor = PrimaryBlue,
-                            )
+                            StatCard(title = "Total Laba", value = netProfit.toCurrencyString(),
+                                unit = "", image = R.drawable.best, modifier = Modifier.weight(1f),
+                                accentColor = AccentGreen)
+                            StatCard(title = "Total Pendapatan", value = totalSales.toCurrencyString(),
+                                unit = "", image = R.drawable.trend_up, modifier = Modifier.weight(1f),
+                                accentColor = PrimaryBlue)
                             StatCard(
                                 title = "Total Pengeluaran",
                                 value = "Rp ${NumberFormat.getNumberInstance(Locale("in", "ID")).format(totalSales - netProfit)}",
-                                unit = "",
-                                image = R.drawable.trend_down,
-                                modifier = Modifier.weight(1f),
-                                accentColor = Color(0xFFF9A825),
+                                unit = "", image = R.drawable.trend_down,
+                                modifier = Modifier.weight(1f), accentColor = Color(0xFFF9A825),
                             )
                         }
                     }
                 }
             }
 
-            // Graph and Favorite Product
             item {
                 if (screenConfig.isPhone || !isLandscape) {
                     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -274,29 +245,29 @@ fun ReportScreen(
                             totalAmount = totalSales,
                             growthAmount = growthAmount,
                             growthPercentage = growthPercentage,
-                            chartDataPoints = chartDataPoints
+                            chartDataPoints = chartDataPoints,
                         )
                         FavoriteProductCard(
                             topProducts = report?.topProducts ?: emptyList(),
-                            onNavigationFavorite = onNavigationFavorite
+                            onNavigationFavorite = onNavigationFavorite,
                         )
                     }
                 } else {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
                     ) {
                         GraphCard(
                             totalAmount = totalSales,
                             growthAmount = growthAmount,
                             growthPercentage = growthPercentage,
                             chartDataPoints = chartDataPoints,
-                            modifier = Modifier.weight(1.5f)
+                            modifier = Modifier.weight(1.5f),
                         )
                         FavoriteProductCard(
                             topProducts = report?.topProducts ?: emptyList(),
                             modifier = Modifier.weight(1f),
-                            onNavigationFavorite = onNavigationFavorite
+                            onNavigationFavorite = onNavigationFavorite,
                         )
                     }
                 }
@@ -306,19 +277,14 @@ fun ReportScreen(
                 AllOrdersCard(
                     isPhone = screenConfig.isPhone,
                     dailySales = report?.dailySales ?: emptyList(),
-                    onNavigation = onNavigationDailySales
+                    onNavigation = onNavigationDailySales,
                 )
             }
         }
     }
 }
 
-
-
-
 data class Product(val name: String, val category: String, val orders: Int)
-
-
 
 data class Order(
     val id: String,
@@ -326,7 +292,5 @@ data class Order(
     val customerName: String,
     val status: String,
     val payment: String,
-    val orderStatus: String
+    val orderStatus: String,
 )
-
-

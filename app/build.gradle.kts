@@ -78,6 +78,7 @@ dependencies {
     implementation(project(":features:order"))
     implementation(project(":features:transaction"))
     implementation(project(":features:settlement"))
+    implementation(project(":features:onboarding"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)

@@ -20,6 +20,7 @@ import dev.faizal.core.domain.model.report.MonthlySalesReport
 import dev.faizal.core.domain.model.report.SalesGrowth
 import dev.faizal.core.domain.model.report.TopProductReport
 import dev.faizal.core.domain.repository.OrderRepository
+import dev.faizal.core.domain.repository.StoreRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
@@ -32,7 +33,8 @@ import javax.inject.Inject
 
 class OrderRepositoryImpl @Inject constructor(
     private val orderDao: OrderDao,
-    private val pdfGenerator: PdfReportGenerator
+    private val pdfGenerator: PdfReportGenerator,
+    private val storeSettingsRepository: StoreRepository,  // ← inject
 ) : OrderRepository {
 
     override suspend fun createOrder(
@@ -40,7 +42,7 @@ class OrderRepositoryImpl @Inject constructor(
         customerName: String,
         tableNumber: String?,
         orderStatus: OrderStatus,
-        paymentStatus: PaymentStatus
+        paymentStatus: PaymentStatus,
     ): Result<String> {
         return try {
             val orderNumber = generateOrderNumber()
@@ -66,7 +68,7 @@ class OrderRepositoryImpl @Inject constructor(
                     imageUri = order.imageUri,
                     tableNumber = tableNumber,
                     createdAt = timestamp,
-                    updatedAt = timestamp
+                    updatedAt = timestamp,
                 )
             }
 
@@ -149,7 +151,6 @@ class OrderRepositoryImpl @Inject constructor(
     override suspend fun calculateGrowth(year: Int, month: Int): SalesGrowth {
         val currentYearMonth = formatYearMonth(year, month)
 
-        // Calculate previous month
         val calendar = Calendar.getInstance()
         calendar.set(year, month - 1, 1)
         calendar.add(Calendar.MONTH, -1)
@@ -172,7 +173,7 @@ class OrderRepositoryImpl @Inject constructor(
             previousMonthSales = previousSales,
             growthAmount = growthAmount,
             growthPercentage = growthPercentage,
-            isPositive = growthAmount >= 0
+            isPositive = growthAmount >= 0,
         )
     }
 
@@ -188,7 +189,7 @@ class OrderRepositoryImpl @Inject constructor(
             dailySales = dailySales,
             topProducts = topProducts,
             categorySales = categorySales,
-            growth = growth
+            growth = growth,
         )
     }
 
@@ -202,16 +203,20 @@ class OrderRepositoryImpl @Inject constructor(
     override suspend fun generateMonthlyReportPdf(
         year: Int,
         month: Int,
-        outputFile: File
+        outputFile: File,
     ): Result<File> {
         return try {
             val report = getCompleteMonthlyReport(year, month)
+            // Inject store info ke PDF generator
+            val settings = storeSettingsRepository.getSettings()
 
             pdfGenerator.generateReport(
                 outputFile = outputFile,
                 year = year,
                 month = month,
-                report = report
+                report = report,
+                storeName = settings?.storeName,
+                storeAddress = settings?.storeAddress,
             )
 
             Result.success(outputFile)
@@ -219,8 +224,6 @@ class OrderRepositoryImpl @Inject constructor(
             Result.failure(e)
         }
     }
-
-    // ==================== Helper Functions ====================
 
     private suspend fun generateOrderNumber(): String {
         val dateFormat = SimpleDateFormat("yyyyMMdd", Locale.getDefault())

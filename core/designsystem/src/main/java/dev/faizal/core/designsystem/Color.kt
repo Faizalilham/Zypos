@@ -40,3 +40,15 @@ val SurfaceGray = Color(0xFFF0F0F0)
 // Border Colors
 val BorderLight = Color(0xFFE0E0E0)
 val StatusError = Color(0xFFfc4a4a)
+
+
+val OnboardingLavender = Color(0xFFD6E0FF)   // Welcome intro — selaras PrimaryBlueLight
+val OnboardingMintGreen = Color(0xFFD4F0DC)  // Goal & Priority — selaras AccentGreen
+val OnboardingPeach = Color(0xFFFFE5CC)      // Business type
+val OnboardingPink = Color(0xFFFFE0E0)       // Business scale
+val OnboardingSkyBlue = Color(0xFFD6E5FA)    // Store info — selaras CardBlueLight
+val OnboardingLilac = Color(0xFFE0D7F5)      // Operational
+val OnboardingButter = Color(0xFFFFF5C4)     // Welcome value — selaras CardYellowLight
+
+// Status colors untuk progress bar (selain PrimaryBlue & White)
+val ProgressBarDone = AccentGreen            // Reuse AccentGreen untuk segmen "done"

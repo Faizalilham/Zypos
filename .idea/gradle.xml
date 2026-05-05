@@ -35,6 +35,7 @@
             <option value="$PROJECT_DIR$/features/dashboard" />
             <option value="$PROJECT_DIR$/features/favorite" />
             <option value="$PROJECT_DIR$/features/menu" />
+            <option value="$PROJECT_DIR$/features/onboarding" />
             <option value="$PROJECT_DIR$/features/order" />
             <option value="$PROJECT_DIR$/features/settlement" />
             <option value="$PROJECT_DIR$/features/transaction" />

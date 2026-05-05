@@ -65,13 +65,13 @@ data class BottomNavItem(
 fun MainNavigation(
     orderViewModel: OrderViewModel = hiltViewModel(),
     isDarkMode: Boolean,
+    screenConfig: ScreenConfig,
     onDarkModeChange: (Boolean) -> Unit
 ) {
     LaunchedEffect(isDarkMode) {
         Log.d("DarkMode", "isDarkMode changed to: $isDarkMode")
     }
 
-    val screenConfig = rememberScreenConfig()
     var selectedScreen by remember { mutableStateOf<MainRoute>(MainRoute.Overview) }
     var isSidebarOpen by remember { mutableStateOf(!screenConfig.isPhone && !screenConfig.isTabletPortrait) }
     val snackbarHostState = remember { SnackbarHostState() }

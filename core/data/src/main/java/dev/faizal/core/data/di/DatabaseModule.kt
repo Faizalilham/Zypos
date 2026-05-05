@@ -11,12 +11,15 @@ import dev.faizal.core.data.database.AppDatabase
 import dev.faizal.core.data.datasource.dao.CategoryDao
 import dev.faizal.core.data.datasource.dao.MenuDao
 import dev.faizal.core.data.datasource.dao.OrderDao
+import dev.faizal.core.data.datasource.dao.StoreDao
 import dev.faizal.core.data.repository.CategoryRepositoryImpl
 import dev.faizal.core.data.repository.MenuRepositoryImpl
 import dev.faizal.core.data.repository.OrderRepositoryImpl
+import dev.faizal.core.data.repository.StoreRepositoryImpl
 import dev.faizal.core.domain.repository.CategoryRepository
 import dev.faizal.core.domain.repository.MenuRepository
 import dev.faizal.core.domain.repository.OrderRepository
+import dev.faizal.core.domain.repository.StoreRepository
 import javax.inject.Singleton
 
 @Module
@@ -49,6 +52,12 @@ object DatabaseModule {
 
     @Provides
     @Singleton
+    fun provideStoreDao(database: AppDatabase): StoreDao {
+        return database.storeDao()
+    }
+
+    @Provides
+    @Singleton
     fun provideCategoryRepository(
         categoryDao: CategoryDao
     ): CategoryRepository {
@@ -65,14 +74,22 @@ object DatabaseModule {
         return MenuRepositoryImpl(menuDao, categoryDao, context)
     }
 
+
+    @Provides
+    @Singleton
+    fun provideStoreRepository(
+        dao: StoreDao,
+    ): StoreRepository {
+        return StoreRepositoryImpl(dao)
+    }
+
     @Provides
     @Singleton
     fun provideOrderRepository(
         orderDao: OrderDao,
-        pdfGenerator: PdfReportGenerator
-    ): OrderRepository {
-        return OrderRepositoryImpl(orderDao, pdfGenerator)
-    }
+        pdfGenerator: PdfReportGenerator,
+        storeSettingsRepository: StoreRepository,
+    ): OrderRepository = OrderRepositoryImpl(orderDao, pdfGenerator, storeSettingsRepository)
 
     @Provides
     @Singleton

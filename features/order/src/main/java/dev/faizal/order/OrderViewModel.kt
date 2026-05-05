@@ -14,13 +14,17 @@ import dev.faizal.core.domain.model.order.OrderType
 import dev.faizal.core.domain.model.order.PaymentStatus
 import dev.faizal.core.domain.model.order.Size
 import dev.faizal.core.domain.model.order.Temperature
+import dev.faizal.core.domain.model.store.Store
 import dev.faizal.core.domain.repository.CategoryRepository
 import dev.faizal.core.domain.repository.MenuRepository
 import dev.faizal.core.domain.repository.OrderRepository
+import dev.faizal.core.domain.repository.StoreRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
@@ -31,7 +35,8 @@ import javax.inject.Inject
 class OrderViewModel @Inject constructor(
     private val orderRepository: OrderRepository,
     private val categoryRepository: CategoryRepository,
-    private val menuRepository: MenuRepository
+    private val menuRepository: MenuRepository,
+    private val storeSettingsRepository: StoreRepository,
 ) : ViewModel() {
 
     var state by mutableStateOf(OrderState())
@@ -41,10 +46,21 @@ class OrderViewModel @Inject constructor(
 
     private val _allMenus = MutableStateFlow<List<Menu>>(emptyList())
 
+    /**
+     * Store settings di-expose sebagai StateFlow agar UI bisa langsung observe.
+     * Default null = belum onboarding.
+     */
+    val storeSettings: StateFlow<Store?> =
+        storeSettingsRepository.observeSettings().stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null,
+        )
+
     val menus: StateFlow<List<Menu>> = combine(
         _allMenus,
         snapshotFlow { state.selectedCategory },
-        snapshotFlow { state.searchQuery }
+        snapshotFlow { state.searchQuery },
     ) { menuList, selectedCategory, searchQuery ->
         menuList.filter { menu ->
             val matchesCategory = selectedCategory.isNullOrEmpty() ||
@@ -57,13 +73,31 @@ class OrderViewModel @Inject constructor(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
+        initialValue = emptyList(),
     )
 
     init {
         loadCategories()
         loadMenus()
+        observeServiceStyleChanges()
         state = state.copy(selectedCategory = null)
+    }
+
+    /**
+     * Auto-set isDineIn = false kalau service style = TAKEAWAY_ONLY.
+     * Ini handle juga case user ganti settings di tengah session.
+     */
+    private fun observeServiceStyleChanges() {
+        viewModelScope.launch {
+            storeSettings.collectLatest { settings ->
+                if (settings?.serviceStyle == "TAKEAWAY_ONLY") {
+                    state = state.copy(
+                        isDineIn = false,
+                        selectedTable = null,
+                    )
+                }
+            }
+        }
     }
 
     private fun loadCategories() {
@@ -98,15 +132,11 @@ class OrderViewModel @Inject constructor(
 
     // ==================== PUBLIC METHODS ====================
 
-    /**
-     * Dipanggil setelah user konfirmasi dari AddOrderDialog.
-     * Size & temperature sudah dipilih user, bukan default lagi.
-     */
     fun addToCart(
         menu: Menu,
         quantity: Int = 1,
         size: Size? = Size.MEDIUM,
-        temperature: Temperature? = Temperature.HOT
+        temperature: Temperature? = Temperature.HOT,
     ) {
         val updatedCart = addItemToCart(
             currentItems = state.orderItems,
@@ -114,15 +144,11 @@ class OrderViewModel @Inject constructor(
             quantity = quantity,
             size = size,
             temperature = temperature,
-            orderType = if (state.isDineIn) OrderType.DINE_IN else OrderType.TAKE_AWAY
+            orderType = if (state.isDineIn) OrderType.DINE_IN else OrderType.TAKE_AWAY,
         )
         state = state.copy(orderItems = updatedCart)
     }
 
-    /**
-     * Buka dialog pilih size/temperature sebelum masuk cart.
-     * Set menu yang sedang dipilih ke state, lalu UI akan tampilkan AddOrderDialog.
-     */
     fun onMenuSelected(menu: Menu) {
         state = state.copy(pendingMenu = menu)
     }
@@ -135,7 +161,7 @@ class OrderViewModel @Inject constructor(
         val updatedCart = updateItemQuantity(
             currentItems = state.orderItems,
             item = order,
-            newQuantity = newQuantity
+            newQuantity = newQuantity,
         )
         state = state.copy(orderItems = updatedCart)
     }
@@ -143,14 +169,12 @@ class OrderViewModel @Inject constructor(
     fun removeItem(order: Order) {
         val updatedCart = removeItemFromCart(
             currentItems = state.orderItems,
-            item = order
+            item = order,
         )
         state = state.copy(orderItems = updatedCart)
     }
 
     fun editOrder(oldOrder: Order, newOrder: Order) {
-        // Edit: replace berdasarkan referensi objek (bukan menu.id saja)
-        // sehingga 2 Lemon Tea berbeda size/temp tidak saling tertimpa
         val updatedCart = state.orderItems.map {
             if (it === oldOrder || it == oldOrder) newOrder else it
         }
@@ -158,6 +182,8 @@ class OrderViewModel @Inject constructor(
     }
 
     fun toggleDineIn(isDineIn: Boolean) {
+        // Guard: ignore kalau settings TAKEAWAY_ONLY
+        if (storeSettings.value?.serviceStyle == "TAKEAWAY_ONLY" && isDineIn) return
         state = state.copy(isDineIn = isDineIn)
     }
 
@@ -193,7 +219,7 @@ class OrderViewModel @Inject constructor(
 
     fun saveOrder(
         onSuccess: (String) -> Unit,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
     ) {
         if (state.orderItems.isEmpty()) { onError("Keranjang kosong"); return }
         if (state.selectedPaymentMethod.isEmpty()) { onError("Pilih metode pembayaran"); return }
@@ -206,7 +232,7 @@ class OrderViewModel @Inject constructor(
                     customerName = customerName,
                     tableNumber = if (state.isDineIn) state.selectedTable else null,
                     orderStatus = OrderStatus.COMPLETED,
-                    paymentStatus = PaymentStatus.PAID
+                    paymentStatus = PaymentStatus.PAID,
                 )
                 result.fold(
                     onSuccess = { orderNumber ->
@@ -216,7 +242,7 @@ class OrderViewModel @Inject constructor(
                     },
                     onFailure = { exception ->
                         onError(exception.message ?: "Gagal menyimpan")
-                    }
+                    },
                 )
             } catch (e: Exception) {
                 onError(e.message ?: "Error")
@@ -232,7 +258,7 @@ class OrderViewModel @Inject constructor(
         quantity: Int = 1,
         orderType: OrderType = OrderType.DINE_IN,
         temperature: Temperature? = Temperature.HOT,
-        size: Size? = Size.MEDIUM
+        size: Size? = Size.MEDIUM,
     ): List<Order> {
         val existingIndex = currentItems.indexOfFirst {
             it.menu.id == menu.id &&
@@ -248,7 +274,7 @@ class OrderViewModel @Inject constructor(
                 val itemPrice = calculateItemPrice(menu.basePrice, size)
                 list[existingIndex] = existing.copy(
                     quantity = newQuantity,
-                    totalPrice = itemPrice * newQuantity
+                    totalPrice = itemPrice * newQuantity,
                 )
             }
         } else {
@@ -261,7 +287,7 @@ class OrderViewModel @Inject constructor(
                 orderType = orderType,
                 temperature = temperature,
                 size = size,
-                imageUri = menu.imageUri ?: ""
+                imageUri = menu.imageUri ?: "",
             )
         }
     }
@@ -269,14 +295,16 @@ class OrderViewModel @Inject constructor(
     private fun updateItemQuantity(
         currentItems: List<Order>,
         item: Order,
-        newQuantity: Int
+        newQuantity: Int,
     ): List<Order> {
         return if (newQuantity > 0) {
             currentItems.map { currentItem ->
                 if (currentItem == item) {
                     val itemPrice = calculateItemPrice(currentItem.menu.basePrice, currentItem.size)
                     currentItem.copy(quantity = newQuantity, totalPrice = itemPrice * newQuantity)
-                } else currentItem
+                } else {
+                    currentItem
+                }
             }
         } else {
             removeItemFromCart(currentItems, item)
@@ -284,10 +312,7 @@ class OrderViewModel @Inject constructor(
     }
 
     private fun removeItemFromCart(currentItems: List<Order>, item: Order): List<Order> {
-        // Hapus berdasarkan kesamaan objek, bukan hanya menu.id
-        // sehingga hanya 1 baris yang terhapus meski ada 2 Lemon Tea berbeda
         return currentItems.filterIndexed { index, currentItem ->
-            // Hapus item pertama yang match saja
             !(currentItem == item && index == currentItems.indexOf(item))
         }
     }
@@ -296,11 +321,30 @@ class OrderViewModel @Inject constructor(
         return when (size) {
             Size.SMALL -> basePrice * 0.8
             Size.LARGE -> basePrice * 1.3
-            else -> basePrice // MEDIUM atau null (snack) = harga base
+            else -> basePrice
         }
     }
 
     fun calculateSubtotal(): Double = state.orderItems.sumOf { it.totalPrice }
-    fun calculateTax(taxRate: Double = 0.10): Double = calculateSubtotal() * taxRate
-    fun calculateTotal(): Double = calculateSubtotal() + calculateTax()
+
+    /**
+     * DYNAMIC tax — pakai persentase dari settings.
+     * Return 0 kalau tax tidak aktif atau settings null.
+     */
+    fun calculateTax(): Double {
+        val settings = storeSettings.value ?: return 0.0
+        if (!settings.taxEnabled) return 0.0
+        return calculateSubtotal() * (settings.taxPercentage / 100.0)
+    }
+
+    /**
+     * DYNAMIC service charge.
+     */
+    fun calculateServiceCharge(): Double {
+        val settings = storeSettings.value ?: return 0.0
+        if (!settings.serviceChargeEnabled) return 0.0
+        return calculateSubtotal() * (settings.serviceChargePercentage / 100.0)
+    }
+
+    fun calculateTotal(): Double = calculateSubtotal() + calculateTax() + calculateServiceCharge()
 }
