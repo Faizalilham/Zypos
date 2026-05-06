@@ -11,9 +11,11 @@ import dev.faizal.core.domain.model.order.OrderType
 import dev.faizal.core.domain.model.order.PaymentStatus
 import dev.faizal.core.domain.model.order.Size
 import dev.faizal.core.domain.model.order.Temperature
+import dev.faizal.core.domain.model.store.Store
 import dev.faizal.core.domain.repository.CategoryRepository
 import dev.faizal.core.domain.repository.MenuRepository
 import dev.faizal.core.domain.repository.OrderRepository
+import dev.faizal.core.domain.repository.StoreRepository
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -21,6 +23,7 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
@@ -37,13 +40,13 @@ import org.junit.Test
 /**
  * Unit tests for OrderViewModel
  *
- * Tests cover:
- * - Cart management (add, update, remove)
- * - Order calculations (subtotal, tax, total)
- * - Payment method selection
- * - Order saving
- * - Search and filtering
- * - Error handling
+ * NOTE PENTING: Test ini ASUMSIKAN kamu pakai nama:
+ * - Domain model: `Store` (di package `dev.faizal.core.domain.model.store`)
+ * - Repository:   `StoreRepository`
+ *
+ * Kalau di code kamu masih pakai nama dari Phase A original
+ * (StoreSettings + StoreSettingsRepository), tinggal find & replace
+ * di file ini. Method-nya tetap sama: observeSettings(), getSettings(), dll.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class OrderViewModelTest {
@@ -54,17 +57,22 @@ class OrderViewModelTest {
     private lateinit var orderRepository: OrderRepository
     private lateinit var categoryRepository: CategoryRepository
     private lateinit var menuRepository: MenuRepository
+    private lateinit var storeRepository: StoreRepository
     private lateinit var viewModel: OrderViewModel
 
     private val testDispatcher = StandardTestDispatcher()
 
-    // Test data
+    /** Flow store yang bisa di-emit ulang per test (untuk skenario takeaway-only, dll). */
+    private val storeFlow = MutableStateFlow<Store?>(null)
+
+    // ===== Test Data =====
+
     private val testCategory = Category(
         id = 1,
         name = "Coffee",
         emoji = "☕",
         displayOrder = 1,
-        isActive = true
+        isActive = true,
     )
 
     private val testMenu = Menu(
@@ -77,7 +85,7 @@ class OrderViewModelTest {
         imageUri = null,
         sold = 10,
         categoryEmoji = "☕",
-        imageUrl = 0
+        imageUrl = 0,
     )
 
     private val testOrder = Order(
@@ -88,7 +96,31 @@ class OrderViewModelTest {
         orderType = OrderType.DINE_IN,
         temperature = Temperature.HOT,
         size = Size.MEDIUM,
-        imageUri = ""
+        imageUri = "",
+    )
+
+    /** Default store dengan tax 10%, no service charge, BOTH service style. */
+    private fun defaultStore(
+        taxEnabled: Boolean = true,
+        taxPercentage: Double = 10.0,
+        serviceChargeEnabled: Boolean = false,
+        serviceChargePercentage: Double = 0.0,
+        serviceStyle: String = "BOTH",
+    ): Store = Store(
+        storeName = "Test Cafe",
+        storeAddress = "Jl. Test 123",
+        storePhone = "08123",
+        storeLogoUri = null,
+        fnbType = "CAFE",
+        serviceStyle = serviceStyle,
+        customerCapacity = "MEDIUM",
+        openTime = "08:00",
+        closeTime = "22:00",
+        taxEnabled = taxEnabled,
+        taxPercentage = taxPercentage,
+        serviceChargeEnabled = serviceChargeEnabled,
+        serviceChargePercentage = serviceChargePercentage,
+        priorityFeaturesCsv = "",
     )
 
     @Before
@@ -98,14 +130,22 @@ class OrderViewModelTest {
         orderRepository = mockk()
         categoryRepository = mockk()
         menuRepository = mockk()
+        storeRepository = mockk()
 
-        // Default mocks
         every { categoryRepository.getActiveCategories() } returns flowOf(listOf(testCategory))
         every { menuRepository.getActiveMenus() } returns flowOf(listOf(testMenu))
 
-        viewModel = OrderViewModel(orderRepository, categoryRepository, menuRepository)
+        // Default: store dengan tax 10%
+        storeFlow.value = defaultStore()
+        every { storeRepository.observeSettings() } returns storeFlow
 
-        // Advance past initialization
+        viewModel = OrderViewModel(
+            orderRepository,
+            categoryRepository,
+            menuRepository,
+            storeRepository,
+        )
+
         testDispatcher.scheduler.advanceUntilIdle()
     }
 
@@ -115,11 +155,10 @@ class OrderViewModelTest {
         clearAllMocks()
     }
 
-    // ==================== INITIALIZATION TESTS ====================
+    // ==================== INITIALIZATION ====================
 
     @Test
     fun `viewModel initializes with empty cart`() {
-        // Then
         assertThat(viewModel.state.orderItems).isEmpty()
         assertThat(viewModel.state.isDineIn).isTrue()
         assertThat(viewModel.state.selectedPaymentMethod).isEqualTo("Cash")
@@ -128,20 +167,18 @@ class OrderViewModelTest {
 
     @Test
     fun `viewModel loads categories on init`() = runTest {
-        // Then
         viewModel.categories.test {
             val categories = awaitItem()
             assertThat(categories).hasSize(1)
             assertThat(categories.first().name).isEqualTo("Coffee")
         }
     }
+
     @Test
     fun `viewModel loads menus on init`() = runTest {
         viewModel.menus.test {
             val first = awaitItem()
-
             if (first.isEmpty()) {
-                // Skip empty initial state, tunggu data masuk
                 val menus = awaitItem()
                 assertThat(menus).hasSize(1)
                 assertThat(menus.first().name).isEqualTo("Cappuccino")
@@ -149,19 +186,15 @@ class OrderViewModelTest {
                 assertThat(first).hasSize(1)
                 assertThat(first.first().name).isEqualTo("Cappuccino")
             }
-
             cancelAndIgnoreRemainingEvents()
         }
     }
 
-    // ==================== ADD TO CART TESTS ====================
+    // ==================== ADD TO CART ====================
 
     @Test
     fun `addToCart adds new item to cart`() {
-        // When
         viewModel.addToCart(testMenu)
-
-        // Then
         assertThat(viewModel.state.orderItems).hasSize(1)
         assertThat(viewModel.state.orderItems.first().menu.id).isEqualTo(testMenu.id)
         assertThat(viewModel.state.orderItems.first().quantity).isEqualTo(1)
@@ -169,13 +202,8 @@ class OrderViewModelTest {
 
     @Test
     fun `addToCart increments quantity for existing item`() {
-        // Given
         viewModel.addToCart(testMenu)
-
-        // When
         viewModel.addToCart(testMenu)
-
-        // Then
         assertThat(viewModel.state.orderItems).hasSize(1)
         assertThat(viewModel.state.orderItems.first().quantity).isEqualTo(2)
         assertThat(viewModel.state.orderItems.first().totalPrice).isEqualTo(50000.0)
@@ -183,273 +211,234 @@ class OrderViewModelTest {
 
     @Test
     fun `addToCart with different sizes creates separate cart items`() {
-        // Given
         viewModel.addToCart(testMenu)
-
-        // When - manually add item with different size
-        val largeOrder = testOrder.copy(
-            size = Size.LARGE,
-            totalPrice = 32500.0 // basePrice * 1.3
-        )
+        val largeOrder = testOrder.copy(size = Size.LARGE, totalPrice = 32500.0)
         viewModel.state = viewModel.state.copy(
-            orderItems = viewModel.state.orderItems + largeOrder
+            orderItems = viewModel.state.orderItems + largeOrder,
         )
-
-        // Then
         assertThat(viewModel.state.orderItems).hasSize(2)
     }
 
     @Test
     fun `addToCart with different temperatures creates separate cart items`() {
-        // Given
         viewModel.addToCart(testMenu)
-
-        // When - manually add item with different temperature
         val coldOrder = testOrder.copy(temperature = Temperature.COLD)
         viewModel.state = viewModel.state.copy(
-            orderItems = viewModel.state.orderItems + coldOrder
+            orderItems = viewModel.state.orderItems + coldOrder,
         )
-
-        // Then
         assertThat(viewModel.state.orderItems).hasSize(2)
     }
 
-    // ==================== UPDATE QUANTITY TESTS ====================
+    // ==================== UPDATE QUANTITY ====================
 
     @Test
     fun `updateQuantity increases quantity correctly`() {
-        // Given
         viewModel.addToCart(testMenu)
         val order = viewModel.state.orderItems.first()
-
-        // When
         viewModel.updateQuantity(order, 3)
-
-        // Then
         assertThat(viewModel.state.orderItems.first().quantity).isEqualTo(3)
         assertThat(viewModel.state.orderItems.first().totalPrice).isEqualTo(75000.0)
     }
 
     @Test
-    fun `updateQuantity decreases quantity correctly`() {
-        // Given
-        viewModel.addToCart(testMenu)
-        viewModel.addToCart(testMenu)
-        viewModel.addToCart(testMenu)
-        val order = viewModel.state.orderItems.first()
-
-        // When
-        viewModel.updateQuantity(order, 2)
-
-        // Then
-        assertThat(viewModel.state.orderItems.first().quantity).isEqualTo(2)
-    }
-
-    @Test
     fun `updateQuantity with zero removes item from cart`() {
-        // Given
         viewModel.addToCart(testMenu)
         val order = viewModel.state.orderItems.first()
-
-        // When
         viewModel.updateQuantity(order, 0)
-
-        // Then
         assertThat(viewModel.state.orderItems).isEmpty()
     }
 
     @Test
     fun `updateQuantity with negative value removes item from cart`() {
-        // Given
         viewModel.addToCart(testMenu)
         val order = viewModel.state.orderItems.first()
-
-        // When
         viewModel.updateQuantity(order, -1)
-
-        // Then
         assertThat(viewModel.state.orderItems).isEmpty()
     }
 
-    // ==================== REMOVE ITEM TESTS ====================
+    // ==================== REMOVE ITEM ====================
 
     @Test
     fun `removeItem removes specific item from cart`() {
-        // Given
         viewModel.addToCart(testMenu)
         val order = viewModel.state.orderItems.first()
-
-        // When
         viewModel.removeItem(order)
-
-        // Then
         assertThat(viewModel.state.orderItems).isEmpty()
     }
 
     @Test
     fun `removeItem only removes matching item`() {
-        // Given
         viewModel.addToCart(testMenu)
         val hotOrder = viewModel.state.orderItems.first()
-
-        // Add cold version
         val coldOrder = testOrder.copy(temperature = Temperature.COLD)
         viewModel.state = viewModel.state.copy(
-            orderItems = viewModel.state.orderItems + coldOrder
+            orderItems = viewModel.state.orderItems + coldOrder,
         )
-
-        // When
         viewModel.removeItem(hotOrder)
-
-        // Then
         assertThat(viewModel.state.orderItems).hasSize(1)
         assertThat(viewModel.state.orderItems.first().temperature).isEqualTo(Temperature.COLD)
     }
 
-    // ==================== EDIT ORDER TESTS ====================
+    // ==================== EDIT ORDER ====================
 
     @Test
     fun `editOrder updates existing order in cart`() {
-        // Given
         viewModel.addToCart(testMenu)
         val oldOrder = viewModel.state.orderItems.first()
-        val newOrder = oldOrder.copy(
-            size = Size.LARGE,
-            totalPrice = 32500.0
-        )
-
-        // When
+        val newOrder = oldOrder.copy(size = Size.LARGE, totalPrice = 32500.0)
         viewModel.editOrder(oldOrder, newOrder)
-
-        // Then
         assertThat(viewModel.state.orderItems).hasSize(1)
         assertThat(viewModel.state.orderItems.first().size).isEqualTo(Size.LARGE)
         assertThat(viewModel.state.orderItems.first().totalPrice).isEqualTo(32500.0)
     }
 
-    // ==================== CALCULATION TESTS ====================
+    // ==================== CALCULATIONS (DYNAMIC) ====================
 
     @Test
     fun `calculateSubtotal returns sum of all items`() {
-        // Given
-        viewModel.addToCart(testMenu) // 25000
-        viewModel.addToCart(testMenu) // 25000
-        viewModel.addToCart(testMenu) // 25000
-
-        // When
-        val subtotal = viewModel.calculateSubtotal()
-
-        // Then
-        assertThat(subtotal).isEqualTo(75000.0)
+        viewModel.addToCart(testMenu)
+        viewModel.addToCart(testMenu)
+        viewModel.addToCart(testMenu)
+        assertThat(viewModel.calculateSubtotal()).isEqualTo(75000.0)
     }
 
     @Test
     fun `calculateSubtotal with empty cart returns zero`() {
-        // When
-        val subtotal = viewModel.calculateSubtotal()
-
-        // Then
-        assertThat(subtotal).isEqualTo(0.0)
+        assertThat(viewModel.calculateSubtotal()).isEqualTo(0.0)
     }
 
     @Test
-    fun `calculateTax returns 10 percent of subtotal`() {
-        // Given
+    fun `calculateTax uses tax percentage from store settings`() = runTest {
         viewModel.addToCart(testMenu)
-
-        // When
-        val tax = viewModel.calculateTax()
-
-        // Then
-        assertThat(tax).isEqualTo(2500.0) // 10% of 25000
+        // Default store sudah taxPercentage = 10%
+        assertThat(viewModel.calculateTax()).isEqualTo(2500.0)
     }
 
     @Test
-    fun `calculateTotal returns subtotal plus tax`() {
-        // Given
+    fun `calculateTax returns zero when tax disabled in store settings`() = runTest {
+        // Update store ke tax disabled
+        storeFlow.value = defaultStore(taxEnabled = false, taxPercentage = 0.0)
+        advanceUntilIdle()
+
         viewModel.addToCart(testMenu)
-
-        // When
-        val total = viewModel.calculateTotal()
-
-        // Then
-        assertThat(total).isEqualTo(27500.0) // 25000 + 2500
+        assertThat(viewModel.calculateTax()).isEqualTo(0.0)
     }
 
     @Test
-    fun `calculateTax with custom rate returns correct value`() {
-        // Given
+    fun `calculateTax respects custom percentage from store settings`() = runTest {
+        // Update store ke 15%
+        storeFlow.value = defaultStore(taxEnabled = true, taxPercentage = 15.0)
+        advanceUntilIdle()
+
         viewModel.addToCart(testMenu)
-
-        // When
-        val tax = viewModel.calculateTax(taxRate = 0.15) // 15%
-
-        // Then
-        assertThat(tax).isEqualTo(3750.0) // 15% of 25000
+        assertThat(viewModel.calculateTax()).isEqualTo(3750.0) // 15% of 25000
     }
 
-    // ==================== TOGGLE STATES TESTS ====================
+    @Test
+    fun `calculateServiceCharge returns zero when disabled`() {
+        viewModel.addToCart(testMenu)
+        // Default: serviceChargeEnabled = false
+        assertThat(viewModel.calculateServiceCharge()).isEqualTo(0.0)
+    }
 
     @Test
-    fun `toggleDineIn changes order type`() {
-        // When
-        viewModel.toggleDineIn(false)
+    fun `calculateServiceCharge applies percentage when enabled`() = runTest {
+        storeFlow.value = defaultStore(
+            serviceChargeEnabled = true,
+            serviceChargePercentage = 5.0,
+        )
+        advanceUntilIdle()
 
-        // Then
+        viewModel.addToCart(testMenu)
+        assertThat(viewModel.calculateServiceCharge()).isEqualTo(1250.0) // 5% of 25000
+    }
+
+    @Test
+    fun `calculateTotal returns subtotal plus tax plus service charge`() = runTest {
+        storeFlow.value = defaultStore(
+            taxEnabled = true,
+            taxPercentage = 10.0,
+            serviceChargeEnabled = true,
+            serviceChargePercentage = 5.0,
+        )
+        advanceUntilIdle()
+
+        viewModel.addToCart(testMenu)
+        // 25000 + 2500 (tax) + 1250 (service) = 28750
+        assertThat(viewModel.calculateTotal()).isEqualTo(28750.0)
+    }
+
+    @Test
+    fun `calculateTotal returns subtotal only when both tax and service disabled`() = runTest {
+        storeFlow.value = defaultStore(
+            taxEnabled = false,
+            serviceChargeEnabled = false,
+        )
+        advanceUntilIdle()
+
+        viewModel.addToCart(testMenu)
+        assertThat(viewModel.calculateTotal()).isEqualTo(25000.0)
+    }
+
+    // ==================== TAKEAWAY-ONLY GUARD ====================
+
+    @Test
+    fun `toggleDineIn ignored when serviceStyle is TAKEAWAY_ONLY`() = runTest {
+        storeFlow.value = defaultStore(serviceStyle = "TAKEAWAY_ONLY")
+        advanceUntilIdle()
+
+        // Karena observeServiceStyleChanges, isDineIn auto-reset ke false
+        assertThat(viewModel.state.isDineIn).isFalse()
+
+        // Coba paksa true → harus diabaikan
+        viewModel.toggleDineIn(true)
         assertThat(viewModel.state.isDineIn).isFalse()
     }
 
     @Test
+    fun `toggleDineIn works normally when serviceStyle is BOTH`() = runTest {
+        // Default = BOTH
+        viewModel.toggleDineIn(false)
+        assertThat(viewModel.state.isDineIn).isFalse()
+
+        viewModel.toggleDineIn(true)
+        assertThat(viewModel.state.isDineIn).isTrue()
+    }
+
+    // ==================== TOGGLE STATES ====================
+
+    @Test
     fun `toggleOrderPanel shows and hides panel`() {
-        // When
         viewModel.toggleOrderPanel(true)
-
-        // Then
         assertThat(viewModel.state.showOrderPanel).isTrue()
-
-        // When
         viewModel.toggleOrderPanel(false)
-
-        // Then
         assertThat(viewModel.state.showOrderPanel).isFalse()
     }
 
     @Test
     fun `onPaymentMethodSelected updates payment method`() {
-        // When
         viewModel.onPaymentMethodSelected("Cash")
-
-        // Then
         assertThat(viewModel.state.selectedPaymentMethod).isEqualTo("Cash")
     }
 
     @Test
     fun `toggleDarkMode changes theme`() {
-        // When
         viewModel.toggleDarkMode(true)
-
-        // Then
         assertThat(viewModel.state.isDarkMode).isTrue()
     }
 
-    // ==================== SEARCH AND FILTER TESTS ====================
+    // ==================== SEARCH AND FILTER ====================
 
     @Test
     fun `onCategorySelected filters menus by category`() = runTest {
-        // When
         viewModel.onCategorySelected("Coffee")
         advanceUntilIdle()
-
-        // Then
         assertThat(viewModel.state.selectedCategory).isEqualTo("Coffee")
     }
 
     @Test
     fun `onSearchQueryChanged updates search query`() {
-        // When
         viewModel.onSearchQueryChanged("Cap")
-
-        // Then
         assertThat(viewModel.state.searchQuery).isEqualTo("Cap")
     }
 
@@ -458,19 +447,21 @@ class OrderViewModelTest {
         val menus = listOf(
             testMenu,
             testMenu.copy(id = 2, name = "Latte"),
-            testMenu.copy(id = 3, name = "Espresso")
+            testMenu.copy(id = 3, name = "Espresso"),
         )
         every { menuRepository.getActiveMenus() } returns flowOf(menus)
 
-        val newViewModel = OrderViewModel(orderRepository, categoryRepository, menuRepository)
+        val newViewModel = OrderViewModel(
+            orderRepository,
+            categoryRepository,
+            menuRepository,
+            storeRepository,
+        )
         advanceUntilIdle()
 
         newViewModel.menus.test {
-            skipItems(1) // skip initial emission
-
+            skipItems(1)
             newViewModel.onSearchQueryChanged("Latte")
-
-            // Trigger polling cycle (harus > 100ms)
             advanceTimeBy(101)
             runCurrent()
 
@@ -481,79 +472,51 @@ class OrderViewModelTest {
         }
     }
 
-    // ==================== CLEAR CART TEST ====================
+    // ==================== CLEAR CART ====================
 
     @Test
     fun `clearCart removes all items`() {
-        // Given
         viewModel.addToCart(testMenu)
         viewModel.addToCart(testMenu)
-        viewModel.addToCart(testMenu)
-
-        // When
         viewModel.clearCart()
-
-        // Then
         assertThat(viewModel.state.orderItems).isEmpty()
     }
 
-    // ==================== SAVE ORDER TESTS ====================
+    // ==================== SAVE ORDER ====================
 
     @Test
     fun `saveOrder with empty cart shows error`() {
-        // Given
         var errorMessage = ""
-
-        // When
-        viewModel.saveOrder(
-            onSuccess = {},
-            onError = { errorMessage = it }
-        )
-
-        // Then
+        viewModel.saveOrder(onSuccess = {}, onError = { errorMessage = it })
         assertThat(errorMessage).isEqualTo("Keranjang kosong")
     }
 
     @Test
     fun `saveOrder without payment method shows error`() {
-        // Given
         viewModel.addToCart(testMenu)
         viewModel.state = viewModel.state.copy(selectedPaymentMethod = "")
-
         var errorMessage = ""
-
-        // When
-        viewModel.saveOrder(
-            onSuccess = {},
-            onError = { errorMessage = it }
-        )
-
-        // Then
+        viewModel.saveOrder(onSuccess = {}, onError = { errorMessage = it })
         assertThat(errorMessage).isEqualTo("Pilih metode pembayaran")
     }
 
     @Test
     fun `saveOrder with valid data succeeds`() = runTest {
-        // Given
         viewModel.addToCart(testMenu)
-
         val orderNumber = "ORD-20240101-001"
         coEvery {
-            orderRepository.createOrder(any(), any(), any(), any(),any())
+            orderRepository.createOrder(any(), any(), any(), any(), any())
         } returns Result.success(orderNumber)
 
         var successOrderNumber = ""
-
-        // When
         viewModel.saveOrder(
             onSuccess = { successOrderNumber = it },
-            onError = {}
+            onError = {},
         )
         advanceUntilIdle()
 
-        // Then
         assertThat(successOrderNumber).isEqualTo(orderNumber)
-        assertThat(viewModel.state.orderItems).isEmpty() // Cart cleared
+        assertThat(viewModel.state.orderItems).isEmpty()
         assertThat(viewModel.state.showOrderPanel).isFalse()
 
         coVerify {
@@ -562,143 +525,108 @@ class OrderViewModelTest {
                 customerName = "Dine In",
                 orderStatus = OrderStatus.COMPLETED,
                 paymentStatus = PaymentStatus.PAID,
-                tableNumber = any()
+                tableNumber = any(),
             )
         }
     }
 
     @Test
     fun `saveOrder with repository error shows error message`() = runTest {
-        // Given
         viewModel.addToCart(testMenu)
-
         val errorMsg = "Database error"
         coEvery {
-            orderRepository.createOrder(any(), any(), any(), any(),any())
+            orderRepository.createOrder(any(), any(), any(), any(), any())
         } returns Result.failure(Exception(errorMsg))
 
         var receivedError = ""
-
-        // When
-        viewModel.saveOrder(
-            onSuccess = {},
-            onError = { receivedError = it }
-        )
+        viewModel.saveOrder(onSuccess = {}, onError = { receivedError = it })
         advanceUntilIdle()
 
-        // Then
         assertThat(receivedError).isEqualTo(errorMsg)
-        assertThat(viewModel.state.orderItems).isNotEmpty() // Cart NOT cleared on error
+        assertThat(viewModel.state.orderItems).isNotEmpty()
     }
 
     @Test
     fun `saveOrder uses correct customer name for dine-in`() = runTest {
-        // Given
         viewModel.toggleDineIn(true)
         viewModel.addToCart(testMenu)
-
         coEvery {
-            orderRepository.createOrder(any(), any(), any(), any(),any())
+            orderRepository.createOrder(any(), any(), any(), any(), any())
         } returns Result.success("ORD-001")
 
-        // When
         viewModel.saveOrder(onSuccess = {}, onError = {})
         advanceUntilIdle()
 
-        // Then
         coVerify {
             orderRepository.createOrder(
                 orders = any(),
                 customerName = "Dine In",
                 orderStatus = any(),
                 paymentStatus = any(),
-                tableNumber = any()
+                tableNumber = any(),
             )
         }
     }
 
     @Test
     fun `saveOrder uses correct customer name for takeaway`() = runTest {
-        // Given
         viewModel.toggleDineIn(false)
         viewModel.addToCart(testMenu)
-
         coEvery {
-            orderRepository.createOrder(any(), any(), any(), any(),any())
+            orderRepository.createOrder(any(), any(), any(), any(), any())
         } returns Result.success("ORD-001")
 
-        // When
         viewModel.saveOrder(onSuccess = {}, onError = {})
         advanceUntilIdle()
 
-        // Then
         coVerify {
             orderRepository.createOrder(
                 orders = any(),
                 customerName = "Take Away",
                 orderStatus = any(),
                 paymentStatus = any(),
-                tableNumber = any()
+                tableNumber = any(),
             )
         }
     }
 
-    // ==================== PRICE CALCULATION EDGE CASES ====================
+    // ==================== PRICE EDGE CASES ====================
 
     @Test
     fun `small size applies 80 percent multiplier`() {
         val smallOrder = testOrder.copy(
             size = Size.SMALL,
             quantity = 1,
-            totalPrice = 20000.0  // ← tambahkan ini! 25000 * 0.8
+            totalPrice = 20000.0,
         )
-
         viewModel.state = viewModel.state.copy(orderItems = listOf(smallOrder))
-
-        val subtotal = viewModel.calculateSubtotal()
-
-        assertThat(subtotal).isWithin(0.01).of(20000.0)
+        assertThat(viewModel.calculateSubtotal()).isWithin(0.01).of(20000.0)
     }
 
     @Test
     fun `large size applies 130 percent multiplier`() {
-        // Given
         val largeOrder = testOrder.copy(
             size = Size.LARGE,
             quantity = 1,
-            totalPrice = 32500.0 // basePrice * 1.3
+            totalPrice = 32500.0,
         )
-
         viewModel.state = viewModel.state.copy(orderItems = listOf(largeOrder))
-
-        // When
-        val subtotal = viewModel.calculateSubtotal()
-
-        // Then
-        assertThat(subtotal).isEqualTo(32500.0)
+        assertThat(viewModel.calculateSubtotal()).isEqualTo(32500.0)
     }
 
     // ==================== COMPLEX SCENARIOS ====================
 
     @Test
-    fun `cart with multiple items of different configurations calculates correctly`() {
-        // Given - manually create complex cart
+    fun `cart with multiple items calculates correctly with default 10pct tax`() {
         val item1 = testOrder.copy(size = Size.SMALL, quantity = 2, totalPrice = 40000.0)
         val item2 = testOrder.copy(size = Size.LARGE, quantity = 1, totalPrice = 32500.0)
         val item3 = testOrder.copy(temperature = Temperature.COLD, quantity = 3, totalPrice = 75000.0)
 
-        viewModel.state = viewModel.state.copy(
-            orderItems = listOf(item1, item2, item3)
-        )
+        viewModel.state = viewModel.state.copy(orderItems = listOf(item1, item2, item3))
 
-        // When
-        val subtotal = viewModel.calculateSubtotal()
-        val tax = viewModel.calculateTax()
-        val total = viewModel.calculateTotal()
-
-        // Then
-        assertThat(subtotal).isEqualTo(147500.0)
-        assertThat(tax).isEqualTo(14750.0)
-        assertThat(total).isEqualTo(162250.0)
+        // Default mock: tax 10%, no service charge
+        assertThat(viewModel.calculateSubtotal()).isEqualTo(147500.0)
+        assertThat(viewModel.calculateTax()).isEqualTo(14750.0)
+        assertThat(viewModel.calculateTotal()).isEqualTo(162250.0)
     }
 }
