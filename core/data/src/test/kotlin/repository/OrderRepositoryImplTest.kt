@@ -1,4 +1,4 @@
-package dev.faizal.core.data.repository
+package dev.faizal.core.testing.repository
 
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
@@ -8,6 +8,7 @@ import dev.faizal.core.data.datasource.entity.DailySales
 import dev.faizal.core.data.datasource.entity.MonthlySales
 import dev.faizal.core.data.datasource.entity.OrderEntity
 import dev.faizal.core.data.datasource.entity.TopProduct
+import dev.faizal.core.data.repository.OrderRepositoryImpl
 import dev.faizal.core.domain.model.menu.Menu
 import dev.faizal.core.domain.model.order.Order
 import dev.faizal.core.domain.model.order.OrderStatus
@@ -15,6 +16,7 @@ import dev.faizal.core.domain.model.order.OrderType
 import dev.faizal.core.domain.model.order.PaymentStatus
 import dev.faizal.core.domain.model.order.Size
 import dev.faizal.core.domain.model.order.Temperature
+import dev.faizal.core.domain.repository.StoreRepository
 import io.mockk.Runs
 import io.mockk.clearAllMocks
 import io.mockk.coEvery
@@ -48,6 +50,8 @@ class OrderRepositoryImplTest {
     private lateinit var orderDao: OrderDao
     private lateinit var pdfGenerator: PdfReportGenerator
     private lateinit var repository: OrderRepositoryImpl
+
+    private lateinit var store: StoreRepository
 
     // Test data
     private val testMenu = Menu(
@@ -99,7 +103,8 @@ class OrderRepositoryImplTest {
     fun setup() {
         orderDao = mockk()
         pdfGenerator = mockk()
-        repository = OrderRepositoryImpl(orderDao, pdfGenerator)
+        store = mockk()
+        repository = OrderRepositoryImpl(orderDao, pdfGenerator, store)
     }
 
     @After
@@ -499,22 +504,42 @@ class OrderRepositoryImplTest {
         val month = 5
         val outputFile = mockk<File>(relaxed = true)
 
-        // Mock all repository methods needed for complete report
-        coEvery { orderDao.getMonthlySales(any()) } returns MonthlySales(5, 2024, 5000000.0, 150, 300, 100, 1500000.0)
-        every { orderDao.getDailySalesByMonth(any()) } returns flowOf(emptyList())
-        every { orderDao.getTopProductsByMonth(any(), any()) } returns flowOf(emptyList())
-        every { orderDao.getCategorySalesByMonth(any()) } returns flowOf(emptyList())
+        val monthlySales = MonthlySales(5, 2024, 5000000.0, 150, 300, 100, 1500000.0)
+
+        // Suspend functions → coEvery
+        coEvery { orderDao.getMonthlySales(any()) } returns monthlySales
         coEvery { orderDao.getTotalSalesByMonth("2024-05") } returns 5000000.0
         coEvery { orderDao.getTotalSalesByMonth("2024-04") } returns 4000000.0
 
-        every { pdfGenerator.generateReport(any(), any(), any(), any()) } just Runs
+        // Flow functions → every (sudah benar, tapi pastikan konsisten)
+        every { orderDao.getDailySalesByMonth(any()) } returns flowOf(emptyList())
+        every { orderDao.getTopProductsByMonth(any(), any()) } returns flowOf(emptyList())
+        every { orderDao.getCategorySalesByMonth(any()) } returns flowOf(emptyList())
+
+        // Mock store juga kalau dipakai di generateReport
+        coEvery { store.getSettings()?.storeName } returns "Test Store"  // sesuaikan dengan method aslinya
+        coEvery { store.getSettings()?.storeAddress } returns null
+
+        // Mock generateReport dengan semua parameter
+        every {
+            pdfGenerator.generateReport(any(), any(), any(), any(), any(), any())
+        } just Runs
 
         // When
         val result = repository.generateMonthlyReportPdf(year, month, outputFile)
 
         // Then
         assertThat(result.isSuccess).isTrue()
-        verify { pdfGenerator.generateReport(outputFile, year, month, any()) }
+        verify {
+            pdfGenerator.generateReport(
+                outputFile,
+                year,
+                month,
+                any(),   // CompleteMonthlyReport
+                any(),   // storeName
+                any()    // storeAddress
+            )
+        }
     }
 
     @Test
