@@ -34,6 +34,7 @@
             <option value="$PROJECT_DIR$/features" />
             <option value="$PROJECT_DIR$/features/dashboard" />
             <option value="$PROJECT_DIR$/features/favorite" />
+            <option value="$PROJECT_DIR$/features/map" />
             <option value="$PROJECT_DIR$/features/menu" />
             <option value="$PROJECT_DIR$/features/onboarding" />
             <option value="$PROJECT_DIR$/features/order" />
